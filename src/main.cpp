@@ -14,9 +14,12 @@
 #include <boost/program_options.hpp>
 #include "Config.h"
 #include "Watcher.h"
+#include "WebserverSocket.h"
 #include "version.h"
 
 bool terminateFlag = false;
+
+namespace po = boost::program_options;
 
 struct config_t
 {
@@ -32,16 +35,15 @@ void signalHandler(int code)
 config_t parseArgs(int argc, char** argv)
 {
     try {
-        boost::program_options::options_description desc("Allowed options");
-        std::string configPath;
+        po::options_description desc("Allowed options");
         config_t config;
         desc.add_options()
-            ("configPath", boost::program_options::value<std::string>(&configPath), "path to the JSON configuration file")
+            ("configPath,c", po::value<std::string>(), "path to the JSON configuration file")
             ("help,h", "print help")
             ("version,v","print version")
         ;
-        boost::program_options::variables_map var;
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc),var);
+        po::variables_map var;
+        po::store(po::parse_command_line(argc, argv, desc),var);
         if (var.count("help")) {
             std::cout << desc << std::endl;
             exit(0);
@@ -51,23 +53,23 @@ config_t parseArgs(int argc, char** argv)
             exit(0);
         }
         if (var.count("configPath")) {
-            std::ifstream f(configPath);
-            if (f.good()) {
-                config.jsonFile = configPath;
+            std::ifstream f(var["configPath"].as<std::string>());
+            if (f) {
+                config.jsonFile = var["configPath"].as<std::string>();
             }
             else {
-                std::cout << "Error, the JSON path specified does not exist." << std::endl;
+                std::cout << "Error, the JSON path specified does not exist. Provided:" << var["configPath"].as<std::string>() << "\r\n";
                 exit(-1);
             }
         }
         else {
-            std::cout << "Error, no JSON path specified!" << std::endl;
+            std::cout << "Error, no JSON path specified!\r\n";
             std::cout << desc << std::endl;
             exit(-1);
         }
         return config;
     } catch (const std::exception &e) {
-        std::cout << "Can't parse commandline arguments!" << std::endl;
+        std::cout << "Can't parse commandline arguments!\r\n";
         std::cout << e.what() << std::endl;
         exit(-1);
     }
@@ -83,10 +85,20 @@ int main(int argc, char** argv)
     wiringPiSetupGpio();
     Config *config = new Config(params.jsonFile);
     if (!config->parseConfig()) {
-        std::cout << "Error, the provided config.json file is invalid." << std::endl;
+        std::cout << "Error, the provided config.json file is invalid.\r\n";
         exit(-1);
     }
 
+    WebserverSocket *webserver = new WebserverSocket("/tmp/webserver.sock");
+    if (webserver->Connect()) {
+        std::cout << "Connected to the webserver!\r\n";
+    }
+    else {
+        std::cout << "Error, can't connect to the webserver!\r\n";
+        std::cout << "Is the webserver running?\r\n";
+        exit(-1);
+    }
+    config->addWebServer(webserver);
 
     Watcher* watcher = new Watcher();
     watcher->spawnThread();
@@ -94,7 +106,9 @@ int main(int argc, char** argv)
     do {
         try {
             config->fetchPlantData();
-            /* push to the webserver the data and get the new limits (if available) */
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            /* Give to the local webserver the humidity of each plant and get the new limits parameters */
+            config->communicateWithWebServer();
             /* trigger watering if needed - every 30min, using a thread */
         } catch (const std::exception& e) {
             std::cout << "Unhandled exception: " << e.what() << std::endl;
@@ -105,5 +119,10 @@ int main(int argc, char** argv)
 
     if (watcher) {
         delete watcher;
+        std::cout << "Watcher thread successfully stopped!\r\n";
+    }
+    if (webserver) {
+        delete webserver;
+        std::cout << "Webserver connection successfully closed!\r\n";    
     }
 }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.0)
-project(waterPi VERSION 0.1.0 LANGUAGES C CXX)
+project(WaterPi)
 
 include(FetchContent)
 
@@ -15,6 +15,7 @@ set(SOURCES
     src/Plant.cpp
     src/Valve.cpp
     src/Watcher.cpp
+    src/WebserverSocket.cpp
     src/main.cpp
 )
 
@@ -27,7 +28,6 @@ find_library(WIRINGPI_LIBRARIES wiringPi)
 find_library(WIRINGPIDEV_LIB wiringPiDev)
 target_link_libraries(waterPi PRIVATE ${WIRINGPI_LIBRARIES})
 target_link_libraries(waterPi PRIVATE ${WIRINGPIDEV_LIB})
-# target_link_libraries(waterPi PRIVATE thread)
 target_link_libraries(waterPi PRIVATE Boost::program_options)
 target_link_libraries(waterPi PRIVATE nlohmann_json::nlohmann_json)
 target_include_directories(waterPi PRIVATE "/usr/local/include")
