@@ -21,7 +21,7 @@ project(WaterPi)
 
 include(FetchContent)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/latest/download/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
 find_package(Boost REQUIRED COMPONENTS program_options)
