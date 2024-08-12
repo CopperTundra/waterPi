@@ -15,7 +15,7 @@ Watcher::~Watcher()
 
 void Watcher::watch()
 {
-    std::cout << "Plant monitor thread started!" << std::endl;
+    std::cout << "Plant monitor thread started!\r\n";
 }
 
 void Watcher::spawnThread() 

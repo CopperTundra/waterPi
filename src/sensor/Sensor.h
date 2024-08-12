@@ -3,12 +3,17 @@
 
 #define INVALID_RES 1000000
 #include <cstdint>
+#include <nlohmann/json.hpp>
 #pragma once
 
 enum SensorType {
     SENSOR_DHT22 = 0,
     SENSORTYPENUMBER
 };
+
+NLOHMANN_JSON_SERIALIZE_ENUM(SensorType, {
+    {SENSOR_DHT22, "DHT22"}
+})
 
 class Sensor
 {
