@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 #include "Plant.h"
-#include <cstdint>
+#include "WebserverSocket.h"
 #include <string>
 #include <vector>
 #pragma once
@@ -14,11 +14,15 @@ public:
     ~Config();
     bool parseConfig();
     bool fetchPlantData();
+    void addWebServer(WebserverSocket* webserver);
+    void communicateWithWebServer();
 
 private:
-    uint8_t configVersion;
-    std::string configPath;
-    std::vector<Plant*> plants;
+    std::string _configVersion;
+    std::string _configPath;
+    std::vector<Plant*> _plants;
+
+    WebserverSocket* _webserver;
 };
 
 #endif
