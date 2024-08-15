@@ -21,20 +21,42 @@
 #ifndef WATCHER_H
 #define WATCHER_H
 
+#include "Plant.h"
+#include <condition_variable>
+#include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
+
 #pragma once
 
+struct PlantData {
+    Plant* plant;
+    float humidity;
+    float maxHumidity;
+    float minHumidity;
+};
 class Watcher
 {
+    void watch();
+    void checkAndWater();
+    void timerThread(uint8_t minutes);
+
+    std::thread _watchThread;
+    bool _alive = false;
+    std::condition_variable _cv;
+    std::mutex _mutex;
+
+    std::vector<PlantData> _plantData;
+
 public:
     Watcher();
     ~Watcher();
-
+    void addPlant(Plant* plant);
+    void setMaxHumidity(float max, std::string name);
+    void setMinHumidity(float min, std::string name);
     void spawnThread();
-
-private:
-    std::thread watchThread;
-    void watch();
+    void stop();
 };
 
 #endif

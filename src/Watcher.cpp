@@ -19,7 +19,10 @@
 */
 
 #include "Watcher.h"
+#include <chrono>
 #include <iostream>
+#include <mutex>
+#include <thread>
 
 Watcher::Watcher()
 {
@@ -28,20 +31,58 @@ Watcher::Watcher()
 
 Watcher::~Watcher()
 {
-    if (watchThread.joinable()) {
-        watchThread.join();
+    _alive = false;
+    if (_watchThread.joinable()) {
+        _watchThread.join();
     }
+}
+
+void Watcher::addPlant(Plant* plant)
+{
+    _plantData.push_back({ plant, 0, 0, 0 });
 }
 
 void Watcher::watch()
 {
     std::cout << "Plant monitor thread started!\r\n";
+    _alive = true;
+    while (_alive) {
+        std::unique_lock<std::mutex> lock(_mutex);
+        if (_cv.wait_for(lock, std::chrono::minutes(1), [this] { return !_alive; })) {
+            break;
+        }
+        std::cout << "Plant monitor thread woke up!\r\n";
+        checkAndWater();
+
+        //TODO: Implement plant monitoring
+    }
 }
 
+void Watcher::stop()
+{
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _alive = false;
+    }
+    _cv.notify_all();
+}
+
+void Watcher::checkAndWater()
+{
+    for (auto& pl : _plantData) {
+        pl.humidity = pl.plant->getHumidity();
+        auto name = pl.plant->getName();
+        std::cout << "Humidity of " << name << " is " << pl.humidity << "\r\n";
+        if (pl.humidity <= pl.minHumidity) {
+            std::cout << "Watering " << name << "\r\n";
+            pl.plant->waterPlant();
+        }
+    }
+}
 void Watcher::spawnThread() 
 {
-    if (watchThread.joinable()) {
-        watchThread.join();
+    if (_watchThread.joinable()) {
+        _watchThread.join();
     }
-    watchThread = std::thread(&Watcher::watch,this);
+    _watchThread = std::thread(&Watcher::watch,this);
 }
