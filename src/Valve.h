@@ -40,6 +40,7 @@ public:
     Valve();
     Valve(ValveType type, uint8_t pin);
     ~Valve();
+    void open(uint16_t seconds);
 
 private:
     ValveType type;

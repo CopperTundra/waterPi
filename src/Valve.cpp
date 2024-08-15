@@ -20,6 +20,7 @@
 
 #include "Valve.h"
 #include <cstdint>
+#include <wiringPi.h>
 
 Valve::Valve()
 {
@@ -28,9 +29,16 @@ Valve::Valve()
 Valve::Valve(ValveType type, uint8_t pin)
 : type(type), pin(pin)
 {
-
+    pinMode(pin, OUTPUT);
 }
 Valve::~Valve()
 {
 
+}
+
+void Valve::open(uint16_t seconds)
+{
+    digitalWrite(pin, HIGH);
+    delay(seconds * 1000);
+    digitalWrite(pin, LOW);
 }

@@ -23,6 +23,7 @@
 #include "Valve.h"
 #include "sensor/DHT22.h"
 #include "sensor/Sensor.h"
+#include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <fstream>
@@ -65,7 +66,15 @@ bool Config::parseConfig()
                 std::cout << "The provided humidity sensor type is not defined! Provided: " << plant["humiditySensor"].get<std::string>() << std::endl; 
                 return false;
             }
-            Plant *pl = new Plant(plant["plantName"].get<std::string>(),sen,val);
+            uint16_t wateringTime = plant["wateringTime"].get<uint16_t>();
+            Plant *pl;
+            if (wateringTime > 0) {
+                pl = new Plant(plant["plantName"].get<std::string>(),sen,val,wateringTime);
+            }
+            else {
+                std::cout << "No watering time provided for plant \"" << plant["plantName"].get<std::string>() << "\". Default watering time is 3 seconds.\r\n";
+                pl = new Plant(plant["plantName"].get<std::string>(),sen,val);
+            }
             _plants.push_back(pl);
             std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n"; 
         }
@@ -99,4 +108,5 @@ void Config::addWebServer(WebserverSocket* webserver)
 void Config::communicateWithWebServer()
 {
     std::cout << "Communicating with web server...\r\n";
+    /*TODO: protocol to be defined */
 }

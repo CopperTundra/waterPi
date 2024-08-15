@@ -22,28 +22,30 @@
 #include "Valve.h"
 #include "sensor/Sensor.h"
 
-Plant::Plant()
+Plant::Plant(std::string name, Sensor* sensor, Valve* valve)
+: _name(name), _humSensor(sensor), _valve(valve)
 {
 
 }
-Plant::Plant(std::string name, Sensor* sensor, Valve* valve)
-: name(name), humSensor(sensor), valve(valve)
+
+Plant::Plant(std::string name, Sensor* sensor, Valve* valve, uint16_t wateringTime)
+: _name(name), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime)
 {
 
 }
 
 bool Plant::fetchHumidity()
 {
-    return (humSensor->fetchHumidity());
+    return (_humSensor->fetchHumidity());
 }
 
 float Plant::getHumidity()
 {
-    humidity = humSensor->getHumidity();
-    return humidity;
+    _humidity = _humSensor->getHumidity();
+    return _humidity;
 }
 
-bool Plant::checkAndWater()
+void Plant::waterPlant()
 {
-    return true;
+    _valve->open(_wateringTime);
 }
