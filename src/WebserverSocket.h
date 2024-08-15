@@ -26,7 +26,7 @@
 #include <string>
 #pragma once
 
-struct PlantData
+struct PlantInfo
 {
     std::string name;
     float humidity;
@@ -40,7 +40,7 @@ public:
     ~WebserverSocket();
     bool Connect();
     bool IsConnected();
-    bool SendPlantData(std::vector<PlantData> PlantValues);
+    bool SendPlantInfo(std::vector<PlantInfo> PlantValues);
 private:
     const char* _path;
     struct sockaddr_un _address;

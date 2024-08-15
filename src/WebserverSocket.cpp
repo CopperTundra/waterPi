@@ -57,7 +57,7 @@ bool WebserverSocket::IsConnected()
     return _connected;
 }
 
-bool WebserverSocket::SendPlantData(std::vector<PlantData> PlantValues)
+bool WebserverSocket::SendPlantInfo(std::vector<PlantInfo> PlantValues)
 {
     if (!_connected) {
         return false;

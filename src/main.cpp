@@ -37,6 +37,8 @@
 #include "WebserverSocket.h"
 #include "version.h"
 
+#define DEBUG_DISABLE_WEBSERVER 1
+
 bool terminateFlag = false;
 
 namespace po = boost::program_options;
@@ -110,6 +112,8 @@ int main(int argc, char** argv)
     }
 
     WebserverSocket *webserver = new WebserverSocket("/tmp/webserver.sock");
+
+#ifndef DEBUG_DISABLE_WEBSERVER
     if (webserver->Connect()) {
         std::cout << "Connected to the webserver!\r\n";
     }
@@ -119,7 +123,9 @@ int main(int argc, char** argv)
         exit(-1);
     }
     config->addWebServer(webserver);
+#endif
 
+    /* trigger watering if needed - every 30min, using a thread */
     Watcher* watcher = new Watcher();
     watcher->spawnThread();
 
@@ -129,7 +135,6 @@ int main(int argc, char** argv)
             std::this_thread::sleep_for(std::chrono::seconds(2));
             /* Give to the local webserver the humidity of each plant and get the new limits parameters */
             config->communicateWithWebServer();
-            /* trigger watering if needed - every 30min, using a thread */
         } catch (const std::exception& e) {
             std::cout << "Unhandled exception: " << e.what() << std::endl;
             terminateFlag = true;
@@ -138,6 +143,7 @@ int main(int argc, char** argv)
     } while (!terminateFlag);
 
     if (watcher) {
+        watcher->stop();
         delete watcher;
         std::cout << "Watcher thread successfully stopped!\r\n";
     }
