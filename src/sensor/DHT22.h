@@ -21,18 +21,19 @@
 #ifndef DHT22_H
 #define DHT22_H
 
-#include "Sensor.h"
 #include <cstdint>
 
-class DHT22 : public Sensor
+#define INVALID_RES 1000000
+
+class DHT22
 {
 public:
-    DHT22();
-    DHT22(SensorType type, uint8_t pinNumber);
-    virtual bool fetchHumidity();
-    virtual bool init();
-    virtual float getHumidity();
+    int pinNumber;
 
+    DHT22(uint8_t pinNumber);
+    bool fetchHumidity();
+    bool init();
+    float getHumidity();
 private:
     int32_t temp, rh;
 };

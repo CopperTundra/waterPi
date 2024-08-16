@@ -27,7 +27,6 @@ FetchContent_MakeAvailable(json)
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 set(SOURCES
-    src/sensor/Sensor.cpp
     src/sensor/DHT22.cpp
     src/Config.cpp
     src/Plant.cpp

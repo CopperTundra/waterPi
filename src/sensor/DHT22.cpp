@@ -19,43 +19,34 @@
 */
 
 #include "DHT22.h"
-#include "sensor/Sensor.h"
-#include <cstdlib>
+#include <cstdio>
+#include <iostream>
 #include <maxdetect.h>
 
-DHT22::DHT22()
+DHT22::DHT22(uint8_t pinNumber)
+: pinNumber(pinNumber)
+
 {
-
-}
-
-DHT22::DHT22(SensorType type, uint8_t pinNumber)
-: Sensor(type,pinNumber)
-{
-
+    std::cout << "DHT created, pinNumber: " << +pinNumber << std::endl;
+    printf("DEBUG: &pinNumber %p, &rh: %p, &temp: %p\n",&pinNumber, &rh, &temp);
 }
 
 bool DHT22::init()
 {
-    /* No init is needed for DHT 22 sensor */
-    srand (static_cast <unsigned> (time(0)));
+    /* No init is needed for DHT22 sensor */
     return true;
 }
 
 bool DHT22::fetchHumidity()
 {
-    // DHT22 sensor is not connected to the Raspberry Pi
-    rh = rand()%(1000-0 + 1) + 0;
-    temp = rand()%(1000-0 + 1) + 0;;
-    return true;
-
-    // if(readRHT03(pinNumber, &temp, &rh))
-    // {
-    //     return true;
-    // }
-    // else {
-    //     temp = rh = INVALID_RES;
-    //     return false;
-    // }
+    if(readRHT03(pinNumber, &temp, &rh)) {
+        std::cout << "pinNumber: " << +pinNumber << " temp: " << (float)temp/10 << " rh: " << (float)rh/10 << std::endl;
+        return true;
+    }
+    else {
+        temp = rh = INVALID_RES;
+        return false;
+    }
 }
 
 float DHT22::getHumidity()

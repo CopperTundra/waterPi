@@ -22,7 +22,6 @@
 #include "Plant.h"
 #include "Valve.h"
 #include "sensor/DHT22.h"
-#include "sensor/Sensor.h"
 #include <cstdint>
 #include <cstdio>
 #include <exception>
@@ -57,15 +56,9 @@ bool Config::parseConfig()
                 std::cout << "The provided valve type is not defined! Provided: " << plant["waterValve"] << std::endl;
                 return false; 
             }
-            Valve *val = new Valve(plant["waterValve"].get<ValveType>(),plant["valve_gpioPin"].get<int>());
-            Sensor *sen;
-            if (plant["humiditySensor"].get<std::string>() == "DHT22") {
-                sen = new DHT22(plant["humiditySensor"].get<SensorType>(),plant["sensor_gpioPin"].get<int>());
-            }
-            else {
-                std::cout << "The provided humidity sensor type is not defined! Provided: " << plant["humiditySensor"].get<std::string>() << std::endl; 
-                return false;
-            }
+            Valve *val = new Valve(plant["waterValve"].get<ValveType>(),plant["valve_gpioPin"].get<uint8_t>());
+            DHT22 *sen = new DHT22(plant["sensor_gpioPin"].get<uint8_t>());
+        
             uint16_t wateringTime = plant["wateringTime"].get<uint16_t>();
             Plant *pl;
             if (wateringTime > 0) {
@@ -76,13 +69,17 @@ bool Config::parseConfig()
                 pl = new Plant(plant["plantName"].get<std::string>(),sen,val);
             }
             _plants.push_back(pl);
-            std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n"; 
+            std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n";
         }
     } catch (const std::exception&e) {
         std::cout << "Config.json file is incorrect!\r\n";
         std::cout << e.what() << std::endl;
         return false;
     }
+    // for (uint8_t i = 0; i < _plants.size(); i++)
+    // {
+    //     printf("DEBUG: pinNumber: %d, &pinNumber: %p",_plants[i]->_humSensor->pinNumber,&_plants[i]->_humSensor->pinNumber);   
+    // }
     return true;
 }
 bool Config::fetchPlantData()

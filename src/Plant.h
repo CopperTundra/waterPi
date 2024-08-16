@@ -22,24 +22,24 @@
 #define PLANT_H
 
 #include "Valve.h"
-#include "sensor/Sensor.h"
+#include "sensor/DHT22.h"
 #include <string>
 #pragma once
 
 class Plant
 {
 public:
-    Plant(std::string name, Sensor* sensor, Valve* valve);
-    Plant(std::string name, Sensor* sensor, Valve* valve, uint16_t wateringTime);
+    Plant(std::string name, DHT22* sensor, Valve* valve);
+    Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime);
     bool fetchHumidity();
     float getHumidity();
     std::string getName() { return _name; }
     void setWateringTime(uint16_t time) { _wateringTime = time; }
     void waterPlant();
+    DHT22* _humSensor;
 
 private:
     std::string _name;
-    Sensor* _humSensor;
     Valve* _valve;
     float _humidity;
     uint16_t _wateringTime = 3; // in seconds

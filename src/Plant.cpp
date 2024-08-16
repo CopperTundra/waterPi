@@ -20,15 +20,15 @@
 
 #include "Plant.h"
 #include "Valve.h"
-#include "sensor/Sensor.h"
+#include "sensor/DHT22.h"
 
-Plant::Plant(std::string name, Sensor* sensor, Valve* valve)
+Plant::Plant(std::string name, DHT22* sensor, Valve* valve)
 : _name(name), _humSensor(sensor), _valve(valve)
 {
 
 }
 
-Plant::Plant(std::string name, Sensor* sensor, Valve* valve, uint16_t wateringTime)
+Plant::Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime)
 : _name(name), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime)
 {
 
