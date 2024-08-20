@@ -20,36 +20,75 @@
 
 #include "DHT22.h"
 #include <cstdio>
-#include <iostream>
+#include <wiringPi.h>
 #include <maxdetect.h>
 
-DHT22::DHT22(uint8_t pinNumber)
-: pinNumber(pinNumber)
-
+DHT22::DHT22(uint8_t pin)
+: pinNumber(pin)
 {
-    std::cout << "DHT created, pinNumber: " << +pinNumber << std::endl;
-    printf("DEBUG: &pinNumber %p, &rh: %p, &temp: %p\n",&pinNumber, &rh, &temp);
+    _temp = _rh = INVALID_RES;
 }
 
-bool DHT22::init()
+bool DHT22::Init()
 {
     /* No init is needed for DHT22 sensor */
     return true;
 }
 
-bool DHT22::fetchHumidity()
+bool DHT22::GetHumidity(float* humidity)
 {
-    if(readRHT03(pinNumber, &temp, &rh)) {
-        std::cout << "pinNumber: " << +pinNumber << " temp: " << (float)temp/10 << " rh: " << (float)rh/10 << std::endl;
+    if(readDHTvalue(pinNumber)) {
+        *humidity = (float) _rh / 10.0;
         return true;
     }
     else {
-        temp = rh = INVALID_RES;
+        _temp = _rh = INVALID_RES;
         return false;
     }
 }
 
-float DHT22::getHumidity()
+/* Customized version of the readRHT03 function from the original WiringPi library */
+bool DHT22::readDHTvalue(const int pin)
 {
-    return (rh / 10.0);
+    int result;
+    struct timeval now, timeOut;
+    unsigned char buffer[4];
+
+    // the datasheet says we should wait 2 seconds before reading again
+    gettimeofday(&now, NULL);
+    if (timercmp(&now, &_then, <)) {
+        return false;
+    }
+
+    // Set timeout for next read
+    gettimeofday(&now, NULL);
+    timerclear(&timeOut);
+    timeOut.tv_sec = 2;
+    timeradd(&now, &timeOut, &_then);
+
+    // Read the sensor
+    result = maxDetectRead(pin, buffer);
+
+    if (!result) // Try again, but just once
+        result = maxDetectRead(pin, buffer);
+
+    if (!result)
+        return false;
+
+    _rh = (buffer[0] * 256 + buffer[1]);
+    _temp = (buffer[2] * 256 + buffer[3]);
+
+    if ((_temp & 0x8000) != 0) // Negative
+    {
+        _temp &= 0x7FFF;
+        _temp = -_temp;
+    }
+
+    // Discard obviously bogus readings - the checksum can't detect a 2-bit error
+    //	(which does seem to happen - no realtime here)
+
+    if ((_rh > 999) || (_temp > 800) || (_temp < -400) || (_rh <= 0))
+        return false;
+
+    return true;
 }

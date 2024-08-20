@@ -20,22 +20,25 @@
 
 #ifndef DHT22_H
 #define DHT22_H
-
+#include <sys/time.h>
 #include <cstdint>
+
+#pragma once
 
 #define INVALID_RES 1000000
 
 class DHT22
 {
 public:
-    int pinNumber;
+    DHT22(uint8_t pin);
+    bool Init();
+    bool GetHumidity(float* humidity);
 
-    DHT22(uint8_t pinNumber);
-    bool fetchHumidity();
-    bool init();
-    float getHumidity();
 private:
-    int32_t temp, rh;
+    int32_t _temp, _rh;
+    struct timeval _then;
+    const int pinNumber;
+    bool readDHTvalue(const int pin);
 };
 
 #endif
