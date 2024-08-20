@@ -33,7 +33,7 @@ public:
     Config(std::string path);
     ~Config();
     bool parseConfig();
-    bool fetchPlantData();
+    void fetchPlantData();
     void addWebServer(WebserverSocket* webserver);
     void communicateWithWebServer();
 

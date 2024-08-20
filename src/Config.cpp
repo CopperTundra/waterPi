@@ -76,24 +76,16 @@ bool Config::parseConfig()
         std::cout << e.what() << std::endl;
         return false;
     }
-    // for (uint8_t i = 0; i < _plants.size(); i++)
-    // {
-    //     printf("DEBUG: pinNumber: %d, &pinNumber: %p",_plants[i]->_humSensor->pinNumber,&_plants[i]->_humSensor->pinNumber);   
-    // }
     return true;
 }
-bool Config::fetchPlantData()
+void Config::fetchPlantData()
 {
+    float hum = 0;
     for (auto & plant : _plants) {
-        if (plant->fetchHumidity()) {
-            auto hum = plant->getHumidity();
-            std::cout << "[Debug] Humidity is " << hum << "% \r\n";
-        }
-        else {
-            return false;
+        if (plant->getHumidity(&hum)) {
+            std::cout << "[Debug] plant " << plant->getName() << " humidity is " << hum << "% \r\n";
         }
     }
-    return true;
 }
 
 void Config::addWebServer(WebserverSocket* webserver)

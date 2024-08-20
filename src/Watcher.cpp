@@ -70,7 +70,7 @@ void Watcher::stop()
 void Watcher::checkAndWater()
 {
     for (auto& pl : _plantData) {
-        pl.humidity = pl.plant->getHumidity();
+        pl.plant->getHumidity(&pl.humidity);
         auto name = pl.plant->getName();
         std::cout << "Humidity of " << name << " is " << pl.humidity << "\r\n";
         if (pl.humidity <= pl.minHumidity) {

@@ -34,15 +34,9 @@ Plant::Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTim
 
 }
 
-bool Plant::fetchHumidity()
+bool Plant::getHumidity(float* humidity)
 {
-    return (_humSensor->fetchHumidity());
-}
-
-float Plant::getHumidity()
-{
-    _humidity = _humSensor->getHumidity();
-    return _humidity;
+    return _humSensor->GetHumidity(humidity);
 }
 
 void Plant::waterPlant()

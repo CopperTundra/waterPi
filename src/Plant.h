@@ -31,8 +31,7 @@ class Plant
 public:
     Plant(std::string name, DHT22* sensor, Valve* valve);
     Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime);
-    bool fetchHumidity();
-    float getHumidity();
+    bool getHumidity(float* humidity);
     std::string getName() { return _name; }
     void setWateringTime(uint16_t time) { _wateringTime = time; }
     void waterPlant();
