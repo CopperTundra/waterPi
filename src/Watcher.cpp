@@ -39,7 +39,7 @@ Watcher::~Watcher()
 
 void Watcher::addPlant(Plant* plant)
 {
-    _plantData.push_back({ plant, 0, 0, 0 });
+    _plantData.push_back({ plant, 0, 0 });
 }
 
 void Watcher::watch()
@@ -85,4 +85,15 @@ void Watcher::spawnThread()
         _watchThread.join();
     }
     _watchThread = std::thread(&Watcher::watch,this);
+}
+
+void Watcher::setMinHumidity(float min, std::string name)
+{
+    for (auto& pl : _plantData) {
+        if (pl.plant->getName() == name) {
+            pl.minHumidity = min;
+            return;
+        }
+    }
+    std::cout << "Plant with name " << name << " not found!\r\n";
 }

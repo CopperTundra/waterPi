@@ -33,7 +33,6 @@
 struct PlantData {
     Plant* plant;
     float humidity;
-    float maxHumidity;
     float minHumidity;
 };
 class Watcher
@@ -53,7 +52,6 @@ public:
     Watcher();
     ~Watcher();
     void addPlant(Plant* plant);
-    void setMaxHumidity(float max, std::string name);
     void setMinHumidity(float min, std::string name);
     void spawnThread();
     void stop();
