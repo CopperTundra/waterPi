@@ -1,0 +1,3 @@
+[submodule "waterPi-web"]
+	path = waterPi-web
+	url = git@github.com:PringleCorn/waterPi-web.git
