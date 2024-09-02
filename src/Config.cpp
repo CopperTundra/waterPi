@@ -71,6 +71,16 @@ bool Config::parseConfig()
             _plants.push_back(pl);
             std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n";
         }
+        // Check against duplicated plant names
+        for (auto& plant : _plants) {
+            for (auto& plant2 : _plants) {
+                if (plant != plant2 && plant->getName() == plant2->getName()) {
+                    std::cout << "Duplicated plant name found: \"" << plant->getName() <<  "\". Please provide unique names for each plant.\r\n";
+                    std::cout << "Hint: You may use the plant's location as part of the name.\r\n";
+                    return false;
+                }
+            }
+        }
     } catch (const std::exception&e) {
         std::cout << "Config.json file is incorrect!\r\n";
         std::cout << e.what() << std::endl;
