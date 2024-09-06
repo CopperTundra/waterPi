@@ -39,7 +39,6 @@ class Watcher
 {
     void watch();
     void checkAndWater();
-    void timerThread(uint8_t minutes);
 
     std::thread _watchThread;
     bool _alive = false;

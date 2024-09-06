@@ -74,7 +74,6 @@ bool DHT22::readDHTvalue(const int pin)
 
     if (!result)
         return false;
-
     _rh = (buffer[0] * 256 + buffer[1]);
     _temp = (buffer[2] * 256 + buffer[3]);
 
@@ -86,9 +85,10 @@ bool DHT22::readDHTvalue(const int pin)
 
     // Discard obviously bogus readings - the checksum can't detect a 2-bit error
     //	(which does seem to happen - no realtime here)
-
     if ((_rh > 999) || (_temp > 800) || (_temp < -400) || (_rh <= 0))
+    {
         return false;
+    }
 
     return true;
 }
