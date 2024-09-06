@@ -60,9 +60,10 @@ bool Config::parseConfig()
             DHT22 *sen = new DHT22(plant["sensor_gpioPin"].get<uint8_t>());
         
             uint16_t wateringTime = plant["wateringTime"].get<uint16_t>();
+            float minHumidity = plant["minHumidity"].get<float>();
             Plant *pl;
             if (wateringTime > 0) {
-                pl = new Plant(plant["plantName"].get<std::string>(),sen,val,wateringTime);
+                pl = new Plant(plant["plantName"].get<std::string>(),sen,val,wateringTime, minHumidity);
             }
             else {
                 std::cout << "No watering time provided for plant \"" << plant["plantName"].get<std::string>() << "\". Default watering time is 3 seconds.\r\n";
@@ -88,6 +89,7 @@ bool Config::parseConfig()
     }
     return true;
 }
+
 void Config::fetchPlantData()
 {
     float hum = 0;
@@ -96,16 +98,4 @@ void Config::fetchPlantData()
             std::cout << "[Debug] plant " << plant->getName() << " humidity is " << hum << "% \r\n";
         }
     }
-}
-
-void Config::addWebServer(WebserverSocket* webserver)
-{
-    _webserver = webserver;
-    communicateWithWebServer();
-}
-
-void Config::communicateWithWebServer()
-{
-    std::cout << "Communicating with web server...\r\n";
-    /*TODO: protocol to be defined */
 }

@@ -28,8 +28,8 @@ Plant::Plant(std::string name, DHT22* sensor, Valve* valve)
 
 }
 
-Plant::Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime)
-: _name(name), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime)
+Plant::Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime, float minHumidity)
+: _name(name), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime), _minHumidity(minHumidity)
 {
 
 }
