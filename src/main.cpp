@@ -34,10 +34,10 @@
 #include <boost/program_options.hpp>
 #include "Config.h"
 #include "Watcher.h"
-#include "WebserverSocket.h"
+#include "WebClient.h"
 #include "version.h"
 
-#define DEBUG_DISABLE_WEBSERVER 1
+// #define DEBUG_DISABLE_WEBSERVER 1
 
 bool terminateFlag = false;
 
@@ -111,18 +111,16 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    WebserverSocket *webserver = new WebserverSocket("/tmp/webserver.sock");
+    WebClient *webserver = new WebClient(params.jsonFile);
 
 #ifndef DEBUG_DISABLE_WEBSERVER
-    if (webserver->Connect()) {
-        std::cout << "Connected to the webserver!\r\n";
-    }
-    else {
+    webserver->spawnThread();
+    if (!webserver->isConnected())
+    {
         std::cout << "Error, can't connect to the webserver!\r\n";
         std::cout << "Is the webserver running?\r\n";
         exit(-1);
     }
-    config->addWebServer(webserver);
 #endif
 
     /* trigger watering if needed - every 30min, using a thread */
@@ -134,7 +132,6 @@ int main(int argc, char** argv)
             config->fetchPlantData();
             std::this_thread::sleep_for(std::chrono::seconds(2));
             /* Give to the local webserver the humidity of each plant and get the new limits parameters */
-            config->communicateWithWebServer();
         } catch (const std::exception& e) {
             std::cout << "Unhandled exception: " << e.what() << std::endl;
             terminateFlag = true;
@@ -148,7 +145,8 @@ int main(int argc, char** argv)
         std::cout << "Watcher thread successfully stopped!\r\n";
     }
     if (webserver) {
+        webserver->stop();
         delete webserver;
-        std::cout << "Webserver connection successfully closed!\r\n";    
+        std::cout << "Webserver thread successfully closed!\r\n";    
     }
 }

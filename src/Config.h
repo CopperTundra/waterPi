@@ -22,7 +22,6 @@
 #define CONFIG_H
 
 #include "Plant.h"
-#include "WebserverSocket.h"
 #include <string>
 #include <vector>
 #pragma once
@@ -34,15 +33,11 @@ public:
     ~Config();
     bool parseConfig();
     void fetchPlantData();
-    void addWebServer(WebserverSocket* webserver);
-    void communicateWithWebServer();
 
 private:
     std::string _configVersion;
     std::string _configPath;
     std::vector<Plant*> _plants;
-
-    WebserverSocket* _webserver;
 };
 
 #endif

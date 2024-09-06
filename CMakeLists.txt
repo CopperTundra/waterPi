@@ -32,7 +32,7 @@ set(SOURCES
     src/Plant.cpp
     src/Valve.cpp
     src/Watcher.cpp
-    src/WebserverSocket.cpp
+    src/WebClient.cpp
     src/main.cpp
 )
 
@@ -47,5 +47,8 @@ target_link_libraries(waterPi PRIVATE ${WIRINGPI_LIBRARIES})
 target_link_libraries(waterPi PRIVATE ${WIRINGPIDEV_LIB})
 target_link_libraries(waterPi PRIVATE Boost::program_options)
 target_link_libraries(waterPi PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(waterPi PRIVATE curl)
+add_subdirectory(cpp-httplib)
+target_link_libraries(waterPi PRIVATE httplib)
 target_include_directories(waterPi PRIVATE "/usr/local/include")
 target_link_directories(waterPi PRIVATE "/usr/local/lib")

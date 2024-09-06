@@ -1,3 +1,6 @@
 [submodule "waterPi-web"]
 	path = waterPi-web
 	url = git@github.com:PringleCorn/waterPi-web.git
+[submodule "cpp-httplib"]
+	path = cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
