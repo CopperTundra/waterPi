@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <../cpp-httplib/httplib.h>
+#include "GlobalVars.h"
 
 WebClient::WebClient(std::string configPath)
 : _configPath(configPath)
@@ -56,19 +57,8 @@ void WebClient::webClientThread()
 {
     std::cout << "Web client thread started!\r\n";
     _alive = true;
-    if (this->init()) {
-        std::cout << "Web client thread initialized!\r\n";
-    } else {
-        std::cout << "Web client thread failed to initialize!\r\n";
-        return;
-    }
-    _connected = true;
-
-    if (_configPath != "") 
-    {
-        std::cout << "Sending plant data to server...\r\n";
-        postPlantInfo();
-    }
+    std::cout << "Sending plant data to server...\r\n";
+    postPlantInfo();
     // TODO: redesign to only listen on one port for a server notification and send data to another port
     // Two conditions for the same condition variable would not work
     while (_alive) {
@@ -93,17 +83,6 @@ void WebClient::stop() {
     _alive = false;
   }
   _cv.notify_all();
-}
-
-bool WebClient::init()
-//TODO: test the connection to the server here
-{
-    httplib::Client cli(_url);
-    auto res = cli.Get(ApiEndpoint::GET_PLANT_INFO.c_str());
-    //TODO: Implement the server response check
-    // delete all plants on the server if the server is not empty
-
-    return true;
 }
 
 bool WebClient::postPlantInfo()

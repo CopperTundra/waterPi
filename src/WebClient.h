@@ -44,7 +44,6 @@ public:
   ~WebClient();
   void spawnThread();
   void stop();
-  bool isConnected() { return _connected; }
 
 private:
   const char *_url;
@@ -52,7 +51,6 @@ private:
 
   std::thread _webclientThread;
   bool _alive = false;
-  bool _connected = false;
 
   std::condition_variable _cv;
   std::mutex _mutex;
@@ -60,7 +58,6 @@ private:
   void webClientThread();
   bool postPlantInfo();
   bool postValues();
-  bool init();
 };
 
 #endif
