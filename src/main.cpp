@@ -36,10 +36,10 @@
 #include "Watcher.h"
 #include "WebClient.h"
 #include "version.h"
+#include "GlobalVars.h"
 
-// #define DEBUG_DISABLE_WEBSERVER 1
-
-bool terminateFlag = false;
+#define DEBUG_DISABLE_WEBSERVER 1
+std::atomic<bool> terminateFlag{false};
 
 namespace po = boost::program_options;
 
@@ -115,12 +115,6 @@ int main(int argc, char** argv)
 
 #ifndef DEBUG_DISABLE_WEBSERVER
     webserver->spawnThread();
-    if (!webserver->isConnected())
-    {
-        std::cout << "Error, can't connect to the webserver!\r\n";
-        std::cout << "Is the webserver running?\r\n";
-        exit(-1);
-    }
 #endif
 
     /* trigger watering if needed - every 30min, using a thread */
@@ -140,12 +134,10 @@ int main(int argc, char** argv)
     } while (!terminateFlag);
 
     if (watcher) {
-        watcher->stop();
         delete watcher;
         std::cout << "Watcher thread successfully stopped!\r\n";
     }
     if (webserver) {
-        webserver->stop();
         delete webserver;
         std::cout << "Webserver thread successfully closed!\r\n";    
     }
