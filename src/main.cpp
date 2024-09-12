@@ -134,10 +134,12 @@ int main(int argc, char** argv)
     } while (!terminateFlag);
 
     if (watcher) {
+        watcher->stop();
         delete watcher;
         std::cout << "Watcher thread successfully stopped!\r\n";
     }
     if (webserver) {
+        webserver->stop();
         delete webserver;
         std::cout << "Webserver thread successfully closed!\r\n";    
     }
