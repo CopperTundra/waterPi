@@ -43,3 +43,8 @@ void Plant::waterPlant()
 {
     _valve->open(_wateringTime);
 }
+
+void Plant::waterPlant(uint16_t time)
+{
+    _valve->open(time);
+}

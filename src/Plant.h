@@ -35,6 +35,7 @@ public:
     std::string getName() { return _name; }
     void setWateringTime(uint16_t time) { _wateringTime = time; }
     void waterPlant();
+    void waterPlant(uint16_t time);
     DHT22* _humSensor;
 
 private:
