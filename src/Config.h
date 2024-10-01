@@ -26,6 +26,13 @@
 #include <vector>
 #pragma once
 
+struct PlantData
+{
+    Plant* plant;
+    float humidity;
+    float minHumidity;
+    uint16_t wateringTime;
+};
 class Config
 {
 public:
@@ -33,11 +40,12 @@ public:
     ~Config();
     bool parseConfig();
     void fetchPlantData();
+    void checkAndWater();
 
 private:
     std::string _configVersion;
     std::string _configPath;
-    std::vector<Plant*> _plants;
+    std::vector<PlantData> _plantData;
 };
 
 #endif

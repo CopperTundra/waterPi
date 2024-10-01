@@ -69,14 +69,14 @@ bool Config::parseConfig()
                 std::cout << "No watering time provided for plant \"" << plant["plantName"].get<std::string>() << "\". Default watering time is 3 seconds.\r\n";
                 pl = new Plant(plant["plantName"].get<std::string>(),sen,val);
             }
-            _plants.push_back(pl);
+            _plantData.push_back({pl,0,minHumidity,wateringTime});
             std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n";
         }
         // Check against duplicated plant names
-        for (auto& plant : _plants) {
-            for (auto& plant2 : _plants) {
-                if (plant != plant2 && plant->getName() == plant2->getName()) {
-                    std::cout << "Duplicated plant name found: \"" << plant->getName() <<  "\". Please provide unique names for each plant.\r\n";
+        for (auto& plant : _plantData) {
+            for (auto& plant2 : _plantData) {
+                if (plant.plant != plant2.plant && plant.plant->getName() == plant2.plant->getName()) {
+                    std::cout << "Duplicated plant name found: \"" << plant.plant->getName() <<  "\". Please provide unique names for each plant.\r\n";
                     std::cout << "Hint: You may use the plant's location as part of the name.\r\n";
                     return false;
                 }
@@ -93,9 +93,19 @@ bool Config::parseConfig()
 void Config::fetchPlantData()
 {
     float hum = 0;
-    for (auto & plant : _plants) {
-        if (plant->getHumidity(&hum)) {
-            std::cout << "[Debug] plant " << plant->getName() << " humidity is " << hum << "% \r\n";
+    for (auto & plant : _plantData) {
+        if (plant.plant->getHumidity(&hum)) {
+            plant.humidity = hum;
+            std::cout << "[Debug] plant " << plant.plant->getName() << " humidity is " << hum << "% \r\n";
+        }
+    }
+}
+
+void Config::checkAndWater()
+{
+    for (auto & plant : _plantData) {
+        if (plant.humidity < plant.minHumidity) {
+            plant.plant->waterPlant(plant.wateringTime);
         }
     }
 }

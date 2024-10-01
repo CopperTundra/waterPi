@@ -37,11 +37,6 @@ Watcher::~Watcher()
     }
 }
 
-void Watcher::addPlant(Plant* plant)
-{
-    _plantData.push_back({ plant, 0, 0 });
-}
-
 void Watcher::watch()
 {
     std::cout << "Plant monitor thread started!\r\n";
@@ -52,9 +47,7 @@ void Watcher::watch()
             break;
         }
         std::cout << "Plant monitor thread woke up!\r\n";
-        checkAndWater();
-
-        //TODO: Implement plant monitoring
+        _timeToWater = true;
     }
 }
 
@@ -67,33 +60,10 @@ void Watcher::stop()
     _cv.notify_all();
 }
 
-void Watcher::checkAndWater()
-{
-    for (auto& pl : _plantData) {
-        pl.plant->getHumidity(&pl.humidity);
-        auto name = pl.plant->getName();
-        std::cout << "Humidity of " << name << " is " << pl.humidity << "\r\n";
-        if (pl.humidity <= pl.minHumidity) {
-            std::cout << "Watering " << name << "\r\n";
-            pl.plant->waterPlant();
-        }
-    }
-}
 void Watcher::spawnThread() 
 {
     if (_watchThread.joinable()) {
         _watchThread.join();
     }
     _watchThread = std::thread(&Watcher::watch,this);
-}
-
-void Watcher::setMinHumidity(float min, std::string name)
-{
-    for (auto& pl : _plantData) {
-        if (pl.plant->getName() == name) {
-            pl.minHumidity = min;
-            return;
-        }
-    }
-    std::cout << "Plant with name " << name << " not found!\r\n";
 }

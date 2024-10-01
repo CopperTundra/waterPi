@@ -120,10 +120,13 @@ int main(int argc, char** argv)
     /* trigger watering if needed - every 30min, using a thread */
     Watcher* watcher = new Watcher();
     watcher->spawnThread();
-
     do {
         try {
             config->fetchPlantData();
+            if (watcher->isTimeToWater()) {
+                watcher->resetTimer();
+                config->checkAndWater();
+            }
             std::this_thread::sleep_for(std::chrono::seconds(2));
             /* Give to the local webserver the humidity of each plant and get the new limits parameters */
         } catch (const std::exception& e) {

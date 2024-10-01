@@ -21,20 +21,14 @@
 #ifndef WATCHER_H
 #define WATCHER_H
 
-#include "Plant.h"
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
-#include <string>
 #include <thread>
-#include <vector>
 
 #pragma once
 
-struct PlantData {
-    Plant* plant;
-    float humidity;
-    float minHumidity;
-};
+
 class Watcher
 {
     void watch();
@@ -45,15 +39,14 @@ class Watcher
     std::condition_variable _cv;
     std::mutex _mutex;
 
-    std::vector<PlantData> _plantData;
-
+    std::atomic<bool> _timeToWater{false};
 public:
     Watcher();
     ~Watcher();
-    void addPlant(Plant* plant);
-    void setMinHumidity(float min, std::string name);
     void spawnThread();
     void stop();
+    void resetTimer() { _timeToWater = false; }
+    bool isTimeToWater() { return _timeToWater; }
 };
 
 #endif
