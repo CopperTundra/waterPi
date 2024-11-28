@@ -38,7 +38,7 @@
 #include "version.h"
 #include "GlobalVars.h"
 
-#define DEBUG_DISABLE_WEBSERVER 1
+// #define DEBUG_DISABLE_WEBSERVER
 std::atomic<bool> terminateFlag{false};
 
 namespace po = boost::program_options;
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    WebClient *webserver = new WebClient(params.jsonFile);
+    WebClient *webserver = new WebClient(params.jsonFile, "http://localhost:1323");
 
 #ifndef DEBUG_DISABLE_WEBSERVER
     webserver->spawnThread();
