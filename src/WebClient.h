@@ -21,9 +21,11 @@
 #ifndef WEBCLIENT_H
 #define WEBCLIENT_H
 
+#include "Plant.h"
 #include <condition_variable>
 #include <thread>
 #include <string>
+#include <vector>
 
 #pragma once
 
@@ -44,10 +46,12 @@ public:
   ~WebClient();
   void spawnThread();
   void stop();
+  void addPlant(Plant* plant) {_plants.push_back(plant);}
 
 private:
   const char *_url;
   std::string _configPath;
+  std::vector<Plant*> _plants;
 
   std::thread _webclientThread;
   bool _alive = false;

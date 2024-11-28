@@ -27,6 +27,9 @@
 #include <unistd.h>
 #include <../cpp-httplib/httplib.h>
 #include "GlobalVars.h"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 WebClient::WebClient(std::string configPath)
 : _configPath(configPath)
@@ -92,12 +95,8 @@ bool WebClient::postPlantInfo()
         { "Content-Type", "application/json" }
     };
     std::ifstream ifs(_configPath);
-    if (ifs.fail()) {
-        std::cout << "Error: Failed to open config file." << std::endl;
-        return false;
-    }
-    std::string body((std::istreambuf_iterator<char>(ifs)),
-                     (std::istreambuf_iterator<char>()));
+    auto config = json::parse(ifs);
+    std::string body = config.dump();
     auto res = cli.Post(ApiEndpoint::POST_PLANT_INFO.c_str(), headers, body,
                         "application/json");
     if (res && res->status == 200) {
@@ -112,11 +111,24 @@ bool WebClient::postPlantInfo()
 
 bool WebClient::postValues()
 {
+    if (_plants.empty()) {
+        std::cout << "No plants to send data for.\r\n";
+        return false;
+    }
     httplib::Client cli(_url);
     httplib::Headers headers = {
         { "Content-Type", "application/json" }
     };
     std::string body; //TODO: Implement data to send
+    for(auto plant : _plants) {
+        float humidity;
+        if (plant->getHumidity(&humidity)) {
+            json j;
+            j["plantName"] = plant->getName();
+            j["humidity"] = humidity;
+            body += j.dump();
+        }
+    }
     auto res = cli.Post(ApiEndpoint::POST_PLANT_VALUES.c_str(), headers, body,
                         "application/json");
     if (res && res->status == 200) {
