@@ -24,15 +24,19 @@
 #include "Valve.h"
 #include "sensor/DHT22.h"
 #include <string>
+#include <uuid/uuid.h>
 #pragma once
 
 class Plant
 {
 public:
     Plant(std::string name, DHT22* sensor, Valve* valve);
+    Plant(std::string name, std::string uid, DHT22* sensor, Valve* valve);
     Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime, float minHumidity);
+    Plant(std::string name, std::string uid, DHT22* sensor, Valve* valve, uint16_t wateringTime, float minHumidity);
     bool getHumidity(float* humidity);
     std::string getName() { return _name; }
+    std::string getUid() { return _uid; }
     void setWateringTime(uint16_t time) { _wateringTime = time; }
     void waterPlant();
     void waterPlant(uint16_t time);
@@ -40,10 +44,13 @@ public:
 
 private:
     std::string _name;
+    std::string _uid;
     Valve* _valve;
     float _humidity;
     uint16_t _wateringTime = 3; // in seconds
     float _minHumidity;
+
+    void _generateUid();
 };
 
 #endif
