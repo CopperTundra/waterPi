@@ -27,6 +27,9 @@
 #include <unistd.h>
 #include <../cpp-httplib/httplib.h>
 #include "GlobalVars.h"
+#include "Plant.h"
+#include "Valve.h"
+#include "sensor/DHT22.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -61,7 +64,8 @@ void WebClient::webClientThread()
     std::cout << "Web client thread started!\r\n";
     _alive = true;
     std::cout << "Sending plant data to server...\r\n";
-    postPlantInfo();
+    // postPlantInfo();
+    getPlantInfo();
     // TODO: redesign to only listen on one port for a server notification and send data to another port
     // Two conditions for the same condition variable would not work
     while (_alive) {
@@ -88,22 +92,59 @@ void WebClient::stop() {
   _cv.notify_all();
 }
 
+bool WebClient::getPlantInfo()
+{
+    httplib::Client cli(_url);
+    httplib::Headers headers = {
+        { "Content-Type", "application/json" },
+        { "Cookie", "Cookie=XDEBUG_SESSION" }
+    };
+    auto res = cli.Get(ApiEndpoint::GET_PLANT_INFO.c_str(), headers);
+    if (res && res->status == 200) {
+        std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
+        json j = json::parse(res->body);
+        for (auto plant : j) {
+            DHT22* sensor = new DHT22(plant["pin"]);
+            Valve* valve = new Valve(ValveType::solenoid, plant["valvePin"]);
+            Plant *p = new Plant(plant["name"], plant["uid"], sensor, valve);
+            _plants.push_back(p);
+            std::cout << "DEBUG: Plant " << plant["name"] << ", UID " << plant["uid"] << " added.\r\n";
+        }
+        return true;
+    } else {
+        std::cout << "DEBUG: Failed to retrieve plant info. Error " << res->status << std::endl;
+        return false;
+    }
+    return false;
+}
+
 bool WebClient::postPlantInfo()
 {
     httplib::Client cli(_url);
     httplib::Headers headers = {
-        { "Content-Type", "application/json" }
+        { "Content-Type", "application/json" },
+        { "Cookie", "Cookie=XDEBUG_SESSION" }
     };
     std::ifstream ifs(_configPath);
     auto config = json::parse(ifs);
-    std::string body = config.dump();
+    std::string body;
+    for (Plant* p : _plants) {
+        json j;
+        j["uid"] = p->getUid();
+        j["name"] = p->getName();
+        // j["latinName"] = p->getLatinName();
+        // j["humidityThreshold"] = p->getHumidityThreshold();
+        // j["wateringInterval"] = p->getWateringInterval();
+        // j["location"] = p->getLocation();
+        body += j.dump();
+    }
     auto res = cli.Post(ApiEndpoint::POST_PLANT_INFO.c_str(), headers, body,
                         "application/json");
     if (res && res->status == 200) {
         std::cout << "DEBUG: Plant info posted successfully!" << std::endl;
         return true;
     } else {
-        std::cout << "DEBUG: Failed to post plant info." << std::endl;
+        std::cout << "DEBUG: Failed to post plant info. Error " << res->status << std::endl;
         return false;
     }
     return false;
@@ -117,14 +158,15 @@ bool WebClient::postValues()
     }
     httplib::Client cli(_url);
     httplib::Headers headers = {
-        { "Content-Type", "application/json" }
+        { "Content-Type", "application/json" },
+        { "Cookie", "Cookie=XDEBUG_SESSION" }
     };
-    std::string body; //TODO: Implement data to send
+    std::string body;
     for(auto plant : _plants) {
         float humidity;
         if (plant->getHumidity(&humidity)) {
             json j;
-            j["plantName"] = plant->getName();
+            j["uid"] = plant->getUid();
             j["humidity"] = humidity;
             body += j.dump();
         }

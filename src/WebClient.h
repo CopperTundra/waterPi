@@ -30,12 +30,12 @@
 #pragma once
 
 namespace ApiEndpoint {
-const std::string POST_PLANT_VALUES = "/api/values";
-const std::string GET_PLANT_INFO = "/api/plants";
-const std::string POST_PLANT_INFO = "/api/plants";
-const std::string DELETE_PLANT_INFO = "/api/plants";
-const std::string GET_LIMIT = "/api/limit";
-const std::string GET_MANUAL_WATERING = "/api/watering";
+const std::string POST_PLANT_VALUES = "/values";
+const std::string GET_PLANT_INFO = "/plants";
+const std::string POST_PLANT_INFO = "/plants";
+const std::string DELETE_PLANT_INFO = "/plants";
+const std::string GET_LIMIT = "/limit";
+const std::string GET_MANUAL_WATERING = "/watering";
 };
 
 class WebClient
@@ -60,6 +60,7 @@ private:
   std::mutex _mutex;
 
   void webClientThread();
+  bool getPlantInfo();
   bool postPlantInfo();
   bool postValues();
 };
