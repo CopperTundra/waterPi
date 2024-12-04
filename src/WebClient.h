@@ -46,12 +46,10 @@ public:
   ~WebClient();
   void spawnThread();
   void stop();
-  void addPlant(Plant* plant) {_plants.push_back(plant);}
 
 private:
   const char *_url;
   std::string _configPath;
-  std::vector<Plant*> _plants;
 
   std::thread _webclientThread;
   bool _alive = false;

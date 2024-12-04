@@ -26,11 +26,11 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <../cpp-httplib/httplib.h>
-#include "GlobalVars.h"
 #include "Plant.h"
 #include "Valve.h"
 #include "sensor/DHT22.h"
 #include <nlohmann/json.hpp>
+#include "GlobalVars.h"
 
 using json = nlohmann::json;
 
@@ -107,7 +107,7 @@ bool WebClient::getPlantInfo()
             DHT22* sensor = new DHT22(plant["pin"]);
             Valve* valve = new Valve(ValveType::solenoid, plant["valvePin"]);
             Plant *p = new Plant(plant["name"], plant["uid"], sensor, valve);
-            _plants.push_back(p);
+            plants.push_back(p);
             std::cout << "DEBUG: Plant " << plant["name"] << ", UID " << plant["uid"] << " added.\r\n";
         }
         return true;
@@ -128,7 +128,7 @@ bool WebClient::postPlantInfo()
     std::ifstream ifs(_configPath);
     auto config = json::parse(ifs);
     std::string body;
-    for (Plant* p : _plants) {
+    for (Plant* p : plants) {
         json j;
         j["uid"] = p->getUid();
         j["name"] = p->getName();
@@ -152,7 +152,7 @@ bool WebClient::postPlantInfo()
 
 bool WebClient::postValues()
 {
-    if (_plants.empty()) {
+    if (plants.empty()) {
         std::cout << "No plants to send data for.\r\n";
         return false;
     }
@@ -162,7 +162,7 @@ bool WebClient::postValues()
         { "Cookie", "Cookie=XDEBUG_SESSION" }
     };
     std::string body;
-    for(auto plant : _plants) {
+    for(auto plant : plants) {
         float humidity;
         if (plant->getHumidity(&humidity)) {
             json j;

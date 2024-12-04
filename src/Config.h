@@ -26,13 +26,6 @@
 #include <vector>
 #pragma once
 
-struct PlantData
-{
-    Plant* plant;
-    float humidity;
-    float minHumidity;
-    uint16_t wateringTime;
-};
 class Config
 {
 public:
@@ -45,7 +38,6 @@ public:
 private:
     std::string _configVersion;
     std::string _configPath;
-    std::vector<PlantData> _plantData;
 };
 
 #endif

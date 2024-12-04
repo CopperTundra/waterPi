@@ -37,6 +37,7 @@ public:
     bool getHumidity(float* humidity);
     std::string getName() { return _name; }
     std::string getUid() { return _uid; }
+    float getMinHumidity() { return _minHumidity; }
     void setWateringTime(uint16_t time) { _wateringTime = time; }
     void waterPlant();
     void waterPlant(uint16_t time);
