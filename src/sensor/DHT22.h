@@ -31,7 +31,6 @@ class DHT22
 {
 public:
     DHT22(uint8_t pin);
-    bool Init();
     bool GetHumidity(float* humidity);
 
 private:

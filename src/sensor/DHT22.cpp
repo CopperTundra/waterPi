@@ -29,12 +29,6 @@ DHT22::DHT22(uint8_t pin)
     _temp = _rh = INVALID_RES;
 }
 
-bool DHT22::Init()
-{
-    /* No init is needed for DHT22 sensor */
-    return true;
-}
-
 bool DHT22::GetHumidity(float* humidity)
 {
     if(readDHTvalue(pinNumber)) {
