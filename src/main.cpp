@@ -39,11 +39,9 @@
 #include "GlobalVars.h"
 
 // #define DEBUG_DISABLE_WEBSERVER
-std::atomic<bool> terminateFlag{false};
 
 namespace po = boost::program_options;
 
-std::vector<Plant*> plants;
 
 struct config_t
 {

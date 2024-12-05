@@ -27,9 +27,11 @@
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <nlohmann/json.hpp>
 #include <ostream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include "GlobalVars.h"
 
@@ -70,23 +72,26 @@ bool Config::parseConfig()
                 std::cout << "No watering time provided for plant \"" << plant["plantName"].get<std::string>() << "\". Default watering time is 3 seconds.\r\n";
                 pl = new Plant(plant["plantName"].get<std::string>(),sen,val);
             }
+            std::unique_lock<std::mutex> lock(mutex_plants);
             plants.push_back(pl);
             std::cout << "Successfully added plant \"" << plant["plantName"].get<std::string>() << "\" to waterPi\r\n";
         }
         // Check against duplicated plant names
+        std::unordered_set<std::string> plantNames;
+        std::unique_lock<std::mutex> lock(mutex_plants);
         for (auto& plant : plants) {
-            for (auto& plant2 : plants) {
-                if (plant != plant2 && plant->getName() == plant2->getName()) {
-                    std::cout << "Duplicated plant name found: \"" << plant->getName() <<  "\". Please provide unique names for each plant.\r\n";
-                    std::cout << "Hint: You may use the plant's location as part of the name.\r\n";
-                    return false;
-                }
+            if (plantNames.find(plant->getName()) != plantNames.end()) {
+                std::cout << "Duplicated plant name found: \"" << plant->getName() <<  "\". Please provide unique names for each plant.\r\n";
+                std::cout << "Hint: You may use the plant's location as part of the name.\r\n";
+                return false;
             }
+            plantNames.insert(plant->getName());
         }
-    } catch (const std::exception&e) {
-        std::cout << "Config.json file is incorrect!\r\n";
-        std::cout << e.what() << std::endl;
-        return false;
+    } 
+    catch (const std::exception &e) {
+      std::cout << "Config.json file is incorrect!\r\n";
+      std::cout << e.what() << std::endl;
+      return false;
     }
     return true;
 }
@@ -94,6 +99,7 @@ bool Config::parseConfig()
 void Config::fetchPlantData()
 {
     float hum = 0;
+    std::unique_lock<std::mutex> lock(mutex_plants);
     for (auto & plant : plants) {
         if (plant->getHumidity(&hum)) {
             std::cout << "[Debug] plant " << plant->getName() << " humidity is " << hum << "% \r\n";
@@ -104,6 +110,7 @@ void Config::fetchPlantData()
 void Config::checkAndWater()
 {
     float hum = 0;
+    std::unique_lock<std::mutex> lock(mutex_plants);
     for (auto & plant : plants) 
     {
         if (plant->getHumidity(&hum)) 

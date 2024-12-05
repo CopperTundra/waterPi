@@ -21,11 +21,9 @@
 #ifndef WEBCLIENT_H
 #define WEBCLIENT_H
 
-#include "Plant.h"
 #include <condition_variable>
 #include <thread>
 #include <string>
-#include <vector>
 
 #pragma once
 

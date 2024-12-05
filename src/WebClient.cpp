@@ -103,6 +103,7 @@ bool WebClient::getPlantInfo()
     if (res && res->status == 200) {
         std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
         json j = json::parse(res->body);
+        std::unique_lock<std::mutex> lock(mutex_plants);
         for (auto plant : j) {
             DHT22* sensor = new DHT22(plant["pin"]);
             Valve* valve = new Valve(ValveType::solenoid, plant["valvePin"]);
@@ -112,7 +113,10 @@ bool WebClient::getPlantInfo()
         }
         return true;
     } else {
-        std::cout << "DEBUG: Failed to retrieve plant info. Error " << res->status << std::endl;
+        std::cout << "DEBUG: Failed to retrieve plant info\r\n";
+        if (res) {
+            std::cout << "DEBUG: Error " << res->status << "\r\n";
+        }
         return false;
     }
     return false;
@@ -128,6 +132,7 @@ bool WebClient::postPlantInfo()
     std::ifstream ifs(_configPath);
     auto config = json::parse(ifs);
     std::string body;
+    std::unique_lock<std::mutex> lock(mutex_plants);
     for (Plant* p : plants) {
         json j;
         j["uid"] = p->getUid();
@@ -144,7 +149,10 @@ bool WebClient::postPlantInfo()
         std::cout << "DEBUG: Plant info posted successfully!" << std::endl;
         return true;
     } else {
-        std::cout << "DEBUG: Failed to post plant info. Error " << res->status << std::endl;
+        std::cout << "DEBUG: Failed to post plant info. \r\n";
+        if (res) {
+            std::cout << "DEBUG: Error " << res->status << "\r\n";
+        }
         return false;
     }
     return false;
@@ -152,6 +160,7 @@ bool WebClient::postPlantInfo()
 
 bool WebClient::postValues()
 {
+    std::unique_lock<std::mutex> lock(mutex_plants);
     if (plants.empty()) {
         std::cout << "No plants to send data for.\r\n";
         return false;
@@ -177,7 +186,10 @@ bool WebClient::postValues()
         std::cout << "DEBUG: Data posted successfully!" << std::endl;
         return true;
     } else {
-        std::cout << "DEBUG: Failed to post data." << std::endl;
+        std::cout << "DEBUG: Failed to post data \r\n";
+        if (res) {
+            std::cout << "DEBUG: Error " << res->status << "\r\n";
+        }
         return false;
     }
     return false;

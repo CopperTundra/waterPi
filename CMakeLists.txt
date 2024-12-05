@@ -33,6 +33,7 @@ set(SOURCES
     src/Valve.cpp
     src/Watcher.cpp
     src/WebClient.cpp
+    src/GlobalVars.cpp
     src/main.cpp
 )
 

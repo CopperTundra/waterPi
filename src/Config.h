@@ -21,9 +21,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "Plant.h"
 #include <string>
-#include <vector>
 #pragma once
 
 class Config
