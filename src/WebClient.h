@@ -23,8 +23,10 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <sys/types.h>
 #include <thread>
 #include <string>
+#include <array>
 
 #pragma once
 
@@ -39,81 +41,115 @@ const std::string POST_PLANT_TRIGGER_WATER = "/plants"; // + /[UID]/water ; from
 const std::string POST_STOP_WATER = "/plants"; // + /[UID]/stop-water ; from the server
 };
 
+
 namespace WebhookEvent {
   const std::string NEW_PLANT = "new_plant";
   const std::string WATERING_REQUEST = "watering_request";
   const std::string DELETE_PLANT = "delete_plant";
   const std::string PATCH_PLANT = "patch_plant";
   const std::string STOP_WATERING_REQUEST = "stop_watering_request";
+  const uint8_t NUM_EVENTS = 5;
+
+  const std::array<std::string,NUM_EVENTS> all_events = {
+    NEW_PLANT,
+    WATERING_REQUEST,
+    DELETE_PLANT,
+    PATCH_PLANT,
+    STOP_WATERING_REQUEST
+  };
 }
 
 class WebClient
 {
 
   class GET_PLANT_INFO {
+  public:
     const std::string endpoint = ApiEndpoint::GET_PLANT_INFO;
-    std::string uid;
-    std::string name;
-    std::string room;
-    std::string humidity_threshold;
-    std::string watering_time_seconds;
-    std::string current_humidity;
-    std::string sensor_pin_number;
-    std::string valve_pin_number;
+    const std::string uid = "uid";
+    const std::string name = "name";
+    const std::string room = "room";
+    const std::string humidity_threshold = "humidity_threshold";
+    const std::string watering_time_seconds = "watering_time_seconds";
+    const std::string current_humidity = "current_humidity";
+    const std::string sensor_pin_number = "sensor_pin_number";
+    const std::string valve_pin_number = "valve_pin_number";
   };
 
   class POST_PLANT_VALUES {
+  public:
     const std::string endpoint;
-    std::string current_humidity;
+    const std::string current_humidity = "current_humidity";
     POST_PLANT_VALUES(std::string uid) 
       : endpoint(ApiEndpoint::POST_PLANT_VALUES + "/" + uid) {}
   };
 
   class POST_WEBHOOK_EVENT {
+  public:
     const std::string endpoint = ApiEndpoint::POST_WEBHOOK_EVENT;
-    std::string event;
-    std::string url;
+    struct event {
+        const std::string event_name = "event";
+        std::string event_field;
+        event(std::string event_field) : event_field(event_field) {}
+        void setEventField(std::string new_event_field) {
+            event_field = new_event_field;
+        }
+    };
+
+    const std::string url = "url";
+    
+    event event_instance;
+
+    POST_WEBHOOK_EVENT(std::string event_field) : event_instance(event_field) {}
+
+    void setEvent(std::string new_event_field) {
+        event_instance.setEventField(new_event_field);
+    }
   };
 
   class POST_PLANT_INFO {
+  public:
     const std::string endpoint = ApiEndpoint::POST_PLANT_INFO;
-    std::string uid;
-    std::string name;
-    std::string room;
-    std::string humidity_threshold;
-    std::string watering_time_seconds;
-    std::string current_humidity;
-    std::string sensor_pin_number;
-    std::string valve_pin_number;
+    const std::string uid = "uid";
+    const std::string name = "name";
+    const std::string room = "room";
+    const std::string humidity_threshold = "humidity_threshold";
+    const std::string watering_time_seconds = "watering_time_seconds";
+    const std::string current_humidity = "current_humidity";
+    const std::string sensor_pin_number = "sensor_pin_number";
+    const std::string valve_pin_number = "valve_pin_number";
   };
 
   class PATCH_PLANT_INFO {
+  public:
     const std::string endpoint;
-    std::string name;
-    std::string room;
-    std::string humidity_threshold;
-    std::string watering_time_seconds;
-    std::string current_humidity;
-    std::string sensor_pin_number;
-    std::string valve_pin_number;
+    const std::string name = "name";
+    const std::string room = "room";
+    const std::string humidity_threshold = "humidity_threshold";
+    const std::string watering_time_seconds = "watering_time_seconds";
+    const std::string current_humidity = "current_humidity";
+    const std::string sensor_pin_number = "sensor_pin_number";
+    const std::string valve_pin_number = "valve_pin_number";
     PATCH_PLANT_INFO(std::string uid)
         : endpoint(ApiEndpoint::PATCH_PLANT_INFO + "/" + uid) {}
   };
 
   class DELETE_PLANT_INFO {
+  public:
     const std::string endpoint;
     DELETE_PLANT_INFO(std::string uid)
         : endpoint(ApiEndpoint::DELETE_PLANT_INFO + "/" + uid) {}
   };
 
   class POST_PLANT_TRIGGER_WATER {
+  public:
     const std::string endpoint;
-    std::string watering_time_seconds;
+    const std::string watering_time_seconds = "watering_time_seconds";
     POST_PLANT_TRIGGER_WATER(std::string uid)
         : endpoint(ApiEndpoint::POST_PLANT_TRIGGER_WATER + "/" + uid + "/water") {}
   };
 
   class POST_STOP_WATER {
+  public:
     const std::string endpoint;
     POST_STOP_WATER(std::string uid)
         : endpoint(ApiEndpoint::POST_STOP_WATER + "/" + uid + "/stop-water") {}
@@ -141,8 +177,8 @@ private:
 
   void webClientThread();
   bool getPlantInfo();
-  bool postPlantInfo();
   bool postValues();
+  bool postWebhookEvents();
 };
 
 #endif

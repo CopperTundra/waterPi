@@ -73,8 +73,8 @@ void WebClient::webClientThread()
     std::cout << "Web client thread started!\r\n";
     _alive = true;
     std::cout << "Sending plant data to server...\r\n";
-    // postPlantInfo();
     getPlantInfo();
+    postWebhookEvents();
     // TODO: redesign to only listen on one port for a server notification and send data to another port
     // Two conditions for the same condition variable would not work
     while (_alive) {
@@ -108,8 +108,10 @@ bool WebClient::getPlantInfo()
         { "Content-Type", "application/json" }
     };
     std::cout << "Get request: " << _url << ApiEndpoint::GET_PLANT_INFO.c_str() << "\r\n";
-    auto res = cli.Get(ApiEndpoint::GET_PLANT_INFO.c_str(), headers);
+    auto ApiCall = new GET_PLANT_INFO();
+    auto res = cli.Get(ApiCall->endpoint.c_str(), headers);
     if (res && res->status == 200) {
+        // TODO: parse the body using the GET_PLANT_INFO class
         std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
         json j = json::parse(res->body);
         std::unique_lock<std::mutex> lock(mutex_plants);
@@ -131,39 +133,30 @@ bool WebClient::getPlantInfo()
     return false;
 }
 
-bool WebClient::postPlantInfo()
+bool WebClient::postWebhookEvents()
 {
     httplib::Client cli(_url);
     httplib::Headers headers = {
         { "Content-Type", "application/json" }
     };
-    std::ifstream ifs(_configPath);
-    auto config = json::parse(ifs);
-    std::string body;
-    std::unique_lock<std::mutex> lock(mutex_plants);
-    for (Plant* p : plants) {
-        json j;
-        j["uid"] = p->getUid();
-        j["name"] = p->getName();
-        // j["latinName"] = p->getLatinName();
-        // j["humidityThreshold"] = p->getHumidityThreshold();
-        // j["wateringInterval"] = p->getWateringInterval();
-        // j["location"] = p->getLocation();
-        body += j.dump();
-    }
-    auto res = cli.Post(ApiEndpoint::POST_PLANT_INFO.c_str(), headers, body,
-                        "application/json");
-    if (res && res->status == 200) {
-        std::cout << "DEBUG: Plant info posted successfully!" << std::endl;
-        return true;
-    } else {
-        std::cout << "DEBUG: Failed to post plant info. \r\n";
-        if (res) {
+    bool val = true;
+    for (uint8_t i = 0; i < WebhookEvent::NUM_EVENTS; i++)
+    {
+        auto ApiCall = new POST_WEBHOOK_EVENT(WebhookEvent::all_events[i]);
+        auto body = ApiCall->event_instance.event_name + "=" + ApiCall->event_instance.event_field;
+        auto res = cli.Post(ApiCall->endpoint.c_str(), headers, body,
+                            "application/json");
+        if (res && res->status == 200) {
+            std::cout << "DEBUG: Webhook event posted successfully!" << std::endl;
+        } else {
+            std::cout << "DEBUG: Failed to post webhook event \r\n";
+            if (res) {
             std::cout << "DEBUG: Error " << res->status << "\r\n";
+            }
+            val = false;
         }
-        return false;
     }
-    return false;
+    return val;
 }
 
 bool WebClient::postValues()
