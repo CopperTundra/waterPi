@@ -111,7 +111,7 @@ int main(int argc, char** argv)
         exit(-1);
     }
 
-    WebClient *webserver = new WebClient(params.jsonFile, "http://localhost:1323");
+    WebClient *webserver = new WebClient(params.jsonFile, "http://localhost", 1323, 1620);
 
 #ifndef DEBUG_DISABLE_WEBSERVER
     webserver->spawnThread();

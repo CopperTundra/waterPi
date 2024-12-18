@@ -35,13 +35,22 @@
 using json = nlohmann::json;
 
 WebClient::WebClient(std::string configPath)
-: _configPath(configPath)
+    : _portDest(1323), _portSrc(1620),_configPath(configPath) 
 {
-    _url = "http://localhost:8080";
+    _url = "http://localhost:" + std::to_string(_portDest);
 }
 
 WebClient::WebClient(std::string configPath, const char *url)
-    : _url(url), _configPath(configPath) {}
+    : _portDest(1323), _portSrc(1620), _configPath(configPath) 
+{
+    _url = url + std::to_string(':') + std::to_string(_portDest);
+}
+
+WebClient::WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc)
+    : _portDest(portDest), _portSrc(portSrc), _configPath(configPath) 
+{
+    _url = url + std::to_string(':') + std::to_string(_portDest);
+}
 
 WebClient::~WebClient()
 {
@@ -99,6 +108,7 @@ bool WebClient::getPlantInfo()
         { "Content-Type", "application/json" },
         { "Cookie", "Cookie=XDEBUG_SESSION" }
     };
+    std::cout << "Get request: " << _url << ApiEndpoint::GET_PLANT_INFO.c_str() << "\r\n";
     auto res = cli.Get(ApiEndpoint::GET_PLANT_INFO.c_str(), headers);
     if (res && res->status == 200) {
         std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;

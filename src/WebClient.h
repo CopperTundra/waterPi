@@ -22,6 +22,7 @@
 #define WEBCLIENT_H
 
 #include <condition_variable>
+#include <cstdint>
 #include <thread>
 #include <string>
 
@@ -41,12 +42,15 @@ class WebClient
 public:
   WebClient(std::string configPath);
   WebClient(std::string configPath, const char *url);
+  WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc);
   ~WebClient();
   void spawnThread();
   void stop();
 
 private:
-  const char *_url;
+  std::string _url; // url including destination port
+  const uint16_t _portDest;
+  const uint16_t _portSrc;
   std::string _configPath;
 
   std::thread _webclientThread;
