@@ -105,8 +105,7 @@ bool WebClient::getPlantInfo()
 {
     httplib::Client cli(_url);
     httplib::Headers headers = {
-        { "Content-Type", "application/json" },
-        { "Cookie", "Cookie=XDEBUG_SESSION" }
+        { "Content-Type", "application/json" }
     };
     std::cout << "Get request: " << _url << ApiEndpoint::GET_PLANT_INFO.c_str() << "\r\n";
     auto res = cli.Get(ApiEndpoint::GET_PLANT_INFO.c_str(), headers);
@@ -136,8 +135,7 @@ bool WebClient::postPlantInfo()
 {
     httplib::Client cli(_url);
     httplib::Headers headers = {
-        { "Content-Type", "application/json" },
-        { "Cookie", "Cookie=XDEBUG_SESSION" }
+        { "Content-Type", "application/json" }
     };
     std::ifstream ifs(_configPath);
     auto config = json::parse(ifs);
