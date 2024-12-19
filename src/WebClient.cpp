@@ -72,7 +72,7 @@ void WebClient::webClientThread()
 {
     std::cout << "Web client thread started!\r\n";
     _alive = true;
-    std::cout << "Sending plant data to server...\r\n";
+    std::cout << "Getting plant data from server...\r\n";
     getPlantInfo();
     postWebhookEvents();
     // TODO: redesign to only listen on one port for a server notification and send data to another port
@@ -111,17 +111,34 @@ bool WebClient::getPlantInfo()
     auto ApiCall = new GET_PLANT_INFO();
     auto res = cli.Get(ApiCall->endpoint.c_str(), headers);
     if (res && res->status == 200) {
-        // TODO: parse the body using the GET_PLANT_INFO class
-        std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
+        // TODO: improve the Plant, Valve and Sensor classes to handle the new data
         json j = json::parse(res->body);
         std::unique_lock<std::mutex> lock(mutex_plants);
         for (auto plant : j) {
-            DHT22* sensor = new DHT22(plant["pin"]);
-            Valve* valve = new Valve(ValveType::solenoid, plant["valvePin"]);
-            Plant *p = new Plant(plant["name"], plant["uid"], sensor, valve);
+            std::string uid = plant[ApiCall->uid];
+            std::string name = plant[ApiCall->name];
+            std::string room = plant[ApiCall->room];
+            float humidity_threshold = (float) plant[ApiCall->humidity_threshold];
+            uint16_t watering_time_seconds = (uint16_t) plant[ApiCall->watering_time_seconds];
+            uint8_t sensor_pin_number = (uint8_t) plant[ApiCall->sensor_pin_number];
+            uint8_t valve_pin_number = (uint8_t) plant[ApiCall->valve_pin_number];
+            for(auto p : plants) {
+                if (p->getUid() == uid) {
+                    // p->setHumidityThreshold(humidity_threshold);
+                    p->setWateringTime(watering_time_seconds);
+                    // p->setSensorPin(sensor_pin_number);
+                    // p->setValvePin(valve_pin_number);
+                    std::cout << "DEBUG: Plant " << name << ", UID " << uid << " updated.\r\n";
+                    continue;
+                }
+            }
+            DHT22* sensor = new DHT22(sensor_pin_number);
+            Valve* valve = new Valve(ValveType::solenoid, valve_pin_number);
+            Plant *p = new Plant(name, uid, sensor, valve);
             plants.push_back(p);
             std::cout << "DEBUG: Plant " << plant["name"] << ", UID " << plant["uid"] << " added.\r\n";
         }
+        std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
         return true;
     } else {
         std::cout << "DEBUG: Failed to retrieve plant info\r\n";
@@ -168,30 +185,27 @@ bool WebClient::postValues()
     }
     httplib::Client cli(_url);
     httplib::Headers headers = {
-        { "Content-Type", "application/json" },
-        { "Cookie", "Cookie=XDEBUG_SESSION" }
+        { "Content-Type", "application/json" }
     };
-    std::string body;
+
     for(auto plant : plants) {
         float humidity;
         if (plant->getHumidity(&humidity)) {
+            auto ApiCall = new POST_PLANT_VALUES(plant->getUid());
             json j;
-            j["uid"] = plant->getUid();
-            j["humidity"] = humidity;
-            body += j.dump();
+            j[ApiCall->current_humidity] = humidity;
+            std::string body = j.dump();
+            auto res = cli.Post(ApiCall->endpoint.c_str(), headers, body, "application/json");
+            if (res && res->status == 200) {
+              std::cout << "DEBUG: Data for plant " << plant->getUid() <<" posted successfully! \r\n";
+            } else {
+              std::cout << "DEBUG: Failed to post data for plant " << plant->getUid() << " \r\n";
+              if (res) {
+                std::cout << "DEBUG: Error " << res->status << "\r\n";
+              }
+              return false;
+            }
         }
-    }
-    auto res = cli.Post(ApiEndpoint::POST_PLANT_VALUES.c_str(), headers, body,
-                        "application/json");
-    if (res && res->status == 200) {
-        std::cout << "DEBUG: Data posted successfully!" << std::endl;
-        return true;
-    } else {
-        std::cout << "DEBUG: Failed to post data \r\n";
-        if (res) {
-            std::cout << "DEBUG: Error " << res->status << "\r\n";
-        }
-        return false;
     }
     return false;
 }
