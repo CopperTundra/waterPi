@@ -27,6 +27,7 @@
 #include <thread>
 #include <string>
 #include <array>
+#include <../cpp-httplib/httplib.h>
 
 #pragma once
 
@@ -176,9 +177,15 @@ private:
   std::mutex _mutex;
 
   void webClientThread();
-  bool getPlantInfo();
+  void listenForServerNotifications();
+
+  // Functions to handle data to the server
+  bool getPlantInfo(); 
   bool postValues();
   bool postWebhookEvents();
+
+  // Functions to handle data from the server
+  void postPlantInfo(const httplib::Request &req, httplib::Response &res);
 };
 
 #endif

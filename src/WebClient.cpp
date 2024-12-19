@@ -24,8 +24,8 @@
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
+#include <thread>
 #include <unistd.h>
-#include <../cpp-httplib/httplib.h>
 #include "Plant.h"
 #include "Valve.h"
 #include "sensor/DHT22.h"
@@ -75,22 +75,54 @@ void WebClient::webClientThread()
     std::cout << "Getting plant data from server...\r\n";
     getPlantInfo();
     postWebhookEvents();
-    // TODO: redesign to only listen on one port for a server notification and send data to another port
-    // Two conditions for the same condition variable would not work
+
+    std::thread sendDataThread([this]() {
+        while (_alive) {
+            std::unique_lock<std::mutex> lock(_mutex);
+            if (_cv.wait_for(lock, std::chrono::seconds(30),
+                            [this] { return !_alive; })) {
+                // woken up by stop()
+                break;
+            }
+            else {
+                // woken up by timer
+                std::cout << "Woken up by timer.\r\n";
+                postValues();
+            std::cout << "Web client thread woke up!\r\n";
+            }
+        }
+    });
+
     while (_alive) {
-        std::unique_lock<std::mutex> lock(_mutex);
-        if (_cv.wait_for(lock, std::chrono::seconds(30),
-                        [this] { return !_alive; })) {
-            // woken up by stop()
-            break;
-        }
-        else {
-            // woken up by timer
-            std::cout << "Woken up by timer.\r\n";
-            postValues();
-        std::cout << "Web client thread woke up!\r\n";
-        }
+        listenForServerNotifications();
     }
+
+    // Clean up
+    if (sendDataThread.joinable()) {
+        sendDataThread.join();
+    }
+}
+
+void WebClient::listenForServerNotifications()
+{
+    httplib::Server svr;
+    std::cout << "Listening on " << _url << ":" << _portSrc << "\r\n";
+    auto ApiCall = new POST_PLANT_INFO();
+    svr.Get(ApiCall->endpoint, std::bind(&WebClient::postPlantInfo, this, std::placeholders::_1, std::placeholders::_2));
+    // ApiCall = new PATCH_PLANT_INFO();
+    // ApiCall = new DELETE_PLANT_INFO();
+    // ApiCall = new POST_PLANT_TRIGGER_WATER();
+    // ApiCall = new POST_STOP_WATER();
+
+    svr.listen(_url, _portSrc);
+    // Implement the logic to listen on a port for new data
+    // Example:
+    // Server svr;
+    // svr.Get("/newdata", [&](const Request & /*req*/, Response &res) {
+    //     // Handle new data
+    //     res.set_content("Data received", "text/plain");
+    // });
+    // svr.listen("localhost", PORT);
 }
 
 void WebClient::stop() {
@@ -208,4 +240,9 @@ bool WebClient::postValues()
         }
     }
     return false;
+}
+
+void WebClient::postPlantInfo(const httplib::Request &req, httplib::Response &res)
+{
+    // TODO: Implement the logic to retrieve plant info from the server (POST call from the server)
 }
