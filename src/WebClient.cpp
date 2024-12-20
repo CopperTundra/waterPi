@@ -20,7 +20,9 @@
 
 #include "WebClient.h"
 #include <chrono>
+#include <cstdint>
 #include <cstring>
+#include <httplib.h>
 #include <iostream>
 #include <string>
 #include <sys/socket.h>
@@ -107,22 +109,37 @@ void WebClient::listenForServerNotifications()
 {
     httplib::Server svr;
     std::cout << "Listening on " << _url << ":" << _portSrc << "\r\n";
-    auto ApiCall = new POST_PLANT_INFO();
-    svr.Get(ApiCall->endpoint, std::bind(&WebClient::postPlantInfo, this, std::placeholders::_1, std::placeholders::_2));
-    // ApiCall = new PATCH_PLANT_INFO();
-    // ApiCall = new DELETE_PLANT_INFO();
-    // ApiCall = new POST_PLANT_TRIGGER_WATER();
-    // ApiCall = new POST_STOP_WATER();
+
+    auto post_plant_info = new POST_PLANT_INFO();
+    svr.Get(post_plant_info->endpoint,
+            std::bind(&WebClient::postPlantInfo, this, std::placeholders::_1,
+                      std::placeholders::_2, post_plant_info));
+
+    auto patch_plant_info = new PATCH_PLANT_INFO("");
+    std::string exactUrl = patch_plant_info->endpoint + "/:uid";
+    svr.Get(exactUrl,
+            std::bind(&WebClient::patchPlantInfo, this, std::placeholders::_1,
+                      std::placeholders::_2, patch_plant_info));
+
+    auto delete_plant_info = new DELETE_PLANT_INFO("");
+    exactUrl = delete_plant_info->endpoint + "/:uid";
+    svr.Get(exactUrl,
+            std::bind(&WebClient::deletePlantInfo, this, std::placeholders::_1,
+                      std::placeholders::_2, delete_plant_info));
+
+    auto post_plant_trigger_water = new POST_PLANT_TRIGGER_WATER("");
+    exactUrl = post_plant_trigger_water->endpoint + "/:uid/water";
+    svr.Get(exactUrl, std::bind(&WebClient::postPlantTriggerWater, this,
+                                std::placeholders::_1, std::placeholders::_2,
+                                post_plant_trigger_water));
+
+    auto post_stop_water = new POST_STOP_WATER("");
+    exactUrl = post_stop_water->endpoint + "/:uid/stop-water";
+    svr.Get(exactUrl,
+            std::bind(&WebClient::postStopWater, this, std::placeholders::_1,
+                      std::placeholders::_2, post_stop_water));
 
     svr.listen(_url, _portSrc);
-    // Implement the logic to listen on a port for new data
-    // Example:
-    // Server svr;
-    // svr.Get("/newdata", [&](const Request & /*req*/, Response &res) {
-    //     // Handle new data
-    //     res.set_content("Data received", "text/plain");
-    // });
-    // svr.listen("localhost", PORT);
 }
 
 void WebClient::stop() {
@@ -242,7 +259,109 @@ bool WebClient::postValues()
     return false;
 }
 
-void WebClient::postPlantInfo(const httplib::Request &req, httplib::Response &res)
+void WebClient::postPlantInfo(const httplib::Request &req, httplib::Response &res, POST_PLANT_INFO *post_plant_info)
 {
-    // TODO: Implement the logic to retrieve plant info from the server (POST call from the server)
+    json data = json::parse(req.body);
+    // auto post_plant_info = new POST_PLANT_INFO();
+    std::string uid = data[post_plant_info->uid];
+    for (auto p : plants) {
+        if (p->getUid() == uid) {
+            std::cout << "DEBUG: Plant " << p->getName() << ", UID " << p->getUid() << " already exists.\r\n";
+            res.status = 400; // Bad request
+            res.set_content("Plant already exists", "text/plain");
+            return;
+        }
+    }
+    std::string name = data[post_plant_info->name];
+    std::string room = data[post_plant_info->room];
+    float humidity_threshold = (float) data[post_plant_info->humidity_threshold];
+    uint16_t watering_time_seconds = (uint16_t) data[post_plant_info->watering_time_seconds];
+    uint8_t sensor_pin_number = (uint8_t) data[post_plant_info->sensor_pin_number];
+    uint8_t valve_pin_number = (uint8_t) data[post_plant_info->valve_pin_number];
+    DHT22 *sensor = new DHT22(sensor_pin_number);
+    Valve *valve = new Valve(ValveType::solenoid, valve_pin_number);
+    Plant *p = new Plant(name, uid, sensor, valve);
+    plants.push_back(p);
+    std::cout << "DEBUG: Plant " << name << ", UID " << uid << " added.\r\n";
+    res.status = 200; // OK
+    res.set_content("Plant added", "text/plain");
+    return;
+}
+
+void WebClient::patchPlantInfo(const httplib::Request &req, httplib::Response &res, PATCH_PLANT_INFO *patch_plant_info)
+{
+    json data = json::parse(req.body);
+    std::string uid = req.params.find("uid")->second;
+    for (auto p : plants) {
+        if (p->getUid() == uid) {
+            std::string name = data[patch_plant_info->name];
+            std::string room = data[patch_plant_info->room];
+            float humidity_threshold = (float) data[patch_plant_info->humidity_threshold];
+            uint16_t watering_time_seconds = (uint16_t) data[patch_plant_info->watering_time_seconds];
+            uint8_t sensor_pin_number = (uint8_t) data[patch_plant_info->sensor_pin_number];
+            uint8_t valve_pin_number = (uint8_t) data[patch_plant_info->valve_pin_number];
+            // TODO: improve the Plant, Valve and Sensor classes to handle the PATCH data
+            // p->setName(name);
+            // p->setRoom(room);
+            // p->setHumidityThreshold(humidity_threshold);
+            p->setWateringTime(watering_time_seconds);
+            // p->setSensorPin(sensor_pin_number);
+            // p->setValvePin(valve_pin_number);
+            res.status = 200; // OK
+            res.set_content("Plant updated", "text/plain");
+            return;
+        }
+    }
+    res.status = 400; // Bad request
+    res.set_content("Plant not found", "text/plain");
+}
+
+void WebClient::deletePlantInfo(const httplib::Request &req, httplib::Response &res, DELETE_PLANT_INFO *delete_plant_info)
+{
+    std::string uid = req.params.find("uid")->second;
+    for (auto it = plants.begin(); it != plants.end(); ++it) {
+        if ((*it)->getUid() == uid) {
+            plants.erase(it);
+            res.status = 200; // OK
+            res.set_content("Plant deleted", "text/plain");
+            return;
+        }
+    }
+    res.status = 400; // Bad request
+    res.set_content("Plant not found", "text/plain");
+}
+
+void WebClient::postPlantTriggerWater(const httplib::Request &req, httplib::Response &res, POST_PLANT_TRIGGER_WATER *post_plant_trigger_water)
+{
+    std::string uid = req.params.find("uid")->second;
+    std::string watering_time_seconds = req.params.find(post_plant_trigger_water->watering_time_seconds)->second;
+    for (auto p : plants) {
+        if (p->getUid() == uid) {
+            if (watering_time_seconds.empty()) 
+            {
+                p->waterPlant();
+            }
+            else 
+            {
+                p->waterPlant(std::stoi(watering_time_seconds));
+            }
+            res.status = 200; // OK
+            res.set_content("Watering started", "text/plain");
+            return;
+        }
+    }
+}
+
+void WebClient::postStopWater(const httplib::Request &req, httplib::Response &res, POST_STOP_WATER *post_stop_water)
+{
+    std::string uid = req.params.find("uid")->second;
+    for (auto p : plants) {
+        if (p->getUid() == uid) {
+            // TODO: improve the Plant, Valve and Sensor classes to handle the STOP WATER command
+            // p->stopWater();
+            res.status = 200; // OK
+            res.set_content("Watering stopped", "text/plain");
+            return;
+        }
+    }
 }

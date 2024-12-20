@@ -185,7 +185,11 @@ private:
   bool postWebhookEvents();
 
   // Functions to handle data from the server
-  void postPlantInfo(const httplib::Request &req, httplib::Response &res);
+  void postPlantInfo(const httplib::Request &req, httplib::Response &res, POST_PLANT_INFO *post_plant_info);
+  void patchPlantInfo(const httplib::Request &req, httplib::Response &res, PATCH_PLANT_INFO *patch_plant_info);
+  void deletePlantInfo(const httplib::Request &req, httplib::Response &res, DELETE_PLANT_INFO *delete_plant_info);
+  void postPlantTriggerWater(const httplib::Request &req, httplib::Response &res, POST_PLANT_TRIGGER_WATER *post_plant_trigger_water);
+  void postStopWater(const httplib::Request &req, httplib::Response &res, POST_STOP_WATER *post_stop_water);
 };
 
 #endif
