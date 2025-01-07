@@ -39,19 +39,19 @@ using json = nlohmann::json;
 WebClient::WebClient(std::string configPath)
     : _portDest(1323), _portSrc(1620),_configPath(configPath) 
 {
-    _url = "http://localhost:" + std::to_string(_portDest);
+    _url = std::string("http://localhost") + std::string(":") + std::to_string(_portDest);
 }
 
 WebClient::WebClient(std::string configPath, const char *url)
     : _portDest(1323), _portSrc(1620), _configPath(configPath) 
 {
-    _url = url + std::to_string(':') + std::to_string(_portDest);
+    _url = url + std::string(":") + std::to_string(_portDest);
 }
 
 WebClient::WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc)
     : _portDest(portDest), _portSrc(portSrc), _configPath(configPath) 
 {
-    _url = url + std::to_string(':') + std::to_string(_portDest);
+    _url = url + std::string(":") + std::to_string(_portDest);
 }
 
 WebClient::~WebClient()
@@ -88,16 +88,13 @@ void WebClient::webClientThread()
             }
             else {
                 // woken up by timer
-                std::cout << "Woken up by timer.\r\n";
+                std::cout << "Web client thread woken up by timer!\r\n";
                 postValues();
-            std::cout << "Web client thread woke up!\r\n";
             }
         }
     });
 
-    while (_alive) {
-        listenForServerNotifications();
-    }
+    listenForServerNotifications();
 
     // Clean up
     if (sendDataThread.joinable()) {
