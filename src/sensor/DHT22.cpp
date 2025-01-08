@@ -20,8 +20,12 @@
 
 #include "DHT22.h"
 #include <cstdio>
+
+#ifndef UNIT_TEST
 #include <wiringPi.h>
 #include <maxdetect.h>
+#endif
+
 
 DHT22::DHT22(uint8_t pin)
 : pinNumber(pin)
@@ -44,6 +48,8 @@ bool DHT22::GetHumidity(float* humidity)
 /* Customized version of the readRHT03 function from the original WiringPi library */
 bool DHT22::readDHTvalue(const int pin)
 {
+#ifndef UNIT_TEST
+
     int result;
     struct timeval now, timeOut;
     unsigned char buffer[4];
@@ -83,6 +89,8 @@ bool DHT22::readDHTvalue(const int pin)
     {
         return false;
     }
+
+#endif
 
     return true;
 }

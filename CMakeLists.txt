@@ -16,8 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with WaterPi.  If not, see <https://www.gnu.org/licenses/>.
 
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.16)
 project(WaterPi)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
@@ -40,7 +43,6 @@ set(SOURCES
 add_executable(waterPi 
     ${SOURCES}
 )
-include_directories(src)
 
 find_library(WIRINGPI_LIBRARIES wiringPi)
 find_library(WIRINGPIDEV_LIB wiringPiDev)

@@ -48,10 +48,10 @@ WebClient::WebClient(std::string configPath, const char *url)
     _url = url + std::string(":") + std::to_string(_portDest);
 }
 
-WebClient::WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc)
-    : _portDest(portDest), _portSrc(portSrc), _configPath(configPath) 
+WebClient::WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc, httplib::Client *client)
+    : _portDest(portDest), _portSrc(portSrc), _configPath(configPath), _client(client ? client : new httplib::Client(url)) 
 {
-    _url = url + std::string(":") + std::to_string(_portDest);
+  _url = url + std::string(":") + std::to_string(_portDest);
 }
 
 WebClient::~WebClient()
@@ -59,6 +59,9 @@ WebClient::~WebClient()
     _alive = false;
     if (_webclientThread.joinable()) {
         _webclientThread.join();
+    }
+    if (_client) {
+        delete _client;
     }
 }
 
@@ -149,13 +152,13 @@ void WebClient::stop() {
 
 bool WebClient::getPlantInfo()
 {
-    httplib::Client cli(_url);
+    
     httplib::Headers headers = {
         { "Content-Type", "application/json" }
     };
     std::cout << "Get request: " << _url << ApiEndpoint::GET_PLANT_INFO.c_str() << "\r\n";
     auto ApiCall = new GET_PLANT_INFO();
-    auto res = cli.Get(ApiCall->endpoint.c_str(), headers);
+    auto res = _client->Get(ApiCall->endpoint.c_str(), headers);
     if (res && res->status == 200) {
         // TODO: improve the Plant, Valve and Sensor classes to handle the new data
         std::cout << "DEBUG: GET response: " << res->body << "\r\n";

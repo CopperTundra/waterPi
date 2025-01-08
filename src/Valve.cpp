@@ -19,17 +19,21 @@
 */
 
 #include "Valve.h"
-#include <cstdint>
+
+#ifndef UNIT_TEST
 #include <wiringPi.h>
+#endif
 
 Valve::Valve()
 {
 
 }
-Valve::Valve(ValveType type, uint8_t pin)
+Valve::Valve(ValveType type, unsigned char pin)
 : _type(type), _pin(pin)
 {
+#ifndef UNIT_TEST
     pinMode(_pin, OUTPUT);
+#endif
 }
 Valve::~Valve()
 {
@@ -38,7 +42,9 @@ Valve::~Valve()
 
 void Valve::open(uint16_t seconds)
 {
+#ifndef UNIT_TEST
     digitalWrite(_pin, HIGH);
     delay(seconds * 1000);
     digitalWrite(_pin, LOW);
+#endif
 }

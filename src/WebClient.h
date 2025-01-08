@@ -27,7 +27,7 @@
 #include <thread>
 #include <string>
 #include <array>
-#include <../cpp-httplib/httplib.h>
+#include <httplib.h>
 
 #pragma once
 
@@ -159,13 +159,14 @@ class WebClient
 public:
   WebClient(std::string configPath);
   WebClient(std::string configPath, const char *url);
-  WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc);
+  WebClient(std::string configPath, const char *url, uint16_t portDest, uint16_t portSrc, httplib::Client *client = nullptr);
   ~WebClient();
   void spawnThread();
   void stop();
 
 private:
   std::string _url; // url including destination port
+  httplib::Client *_client;
   const uint16_t _portDest;
   const uint16_t _portSrc;
   std::string _configPath;
@@ -190,6 +191,8 @@ private:
   void deletePlantInfo(const httplib::Request &req, httplib::Response &res, DELETE_PLANT_INFO *delete_plant_info);
   void postPlantTriggerWater(const httplib::Request &req, httplib::Response &res, POST_PLANT_TRIGGER_WATER *post_plant_trigger_water);
   void postStopWater(const httplib::Request &req, httplib::Response &res, POST_STOP_WATER *post_stop_water);
+
+  friend class WebClientTest_GetPlantInfoSuccess_Test;
 };
 
 #endif

@@ -104,7 +104,11 @@ int main(int argc, char** argv)
     signal(SIGHUP, signalHandler);
     signal(SIGKILL, signalHandler);
     auto params = parseArgs(argc, argv);
+
+#ifndef UNIT_TEST
     wiringPiSetupGpio();
+#endif
+
     Config *config = new Config(params.jsonFile);
     if (!config->parseConfig()) {
         std::cout << "Error, the provided config.json file is invalid.\r\n";
