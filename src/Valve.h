@@ -41,10 +41,11 @@ public:
     Valve(ValveType type, uint8_t pin);
     ~Valve();
     void open(uint16_t seconds);
+    void setPin(uint8_t pin) { _pin = pin; }
 
 private:
-    ValveType type;
-    uint8_t pin;
+    ValveType _type;
+    uint8_t _pin;
 };
 
 #endif

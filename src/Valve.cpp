@@ -27,9 +27,9 @@ Valve::Valve()
 
 }
 Valve::Valve(ValveType type, uint8_t pin)
-: type(type), pin(pin)
+: _type(type), _pin(pin)
 {
-    pinMode(pin, OUTPUT);
+    pinMode(_pin, OUTPUT);
 }
 Valve::~Valve()
 {
@@ -38,7 +38,7 @@ Valve::~Valve()
 
 void Valve::open(uint16_t seconds)
 {
-    digitalWrite(pin, HIGH);
+    digitalWrite(_pin, HIGH);
     delay(seconds * 1000);
-    digitalWrite(pin, LOW);
+    digitalWrite(_pin, LOW);
 }

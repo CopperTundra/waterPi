@@ -158,32 +158,50 @@ bool WebClient::getPlantInfo()
     auto res = cli.Get(ApiCall->endpoint.c_str(), headers);
     if (res && res->status == 200) {
         // TODO: improve the Plant, Valve and Sensor classes to handle the new data
+        std::cout << "DEBUG: GET response: " << res->body << "\r\n";
         json j = json::parse(res->body);
         std::unique_lock<std::mutex> lock(mutex_plants);
-        for (auto plant : j) {
+        try {
+          for (auto plant : j) {
             std::string uid = plant[ApiCall->uid];
             std::string name = plant[ApiCall->name];
             std::string room = plant[ApiCall->room];
-            float humidity_threshold = (float) plant[ApiCall->humidity_threshold];
-            uint16_t watering_time_seconds = (uint16_t) plant[ApiCall->watering_time_seconds];
-            uint8_t sensor_pin_number = (uint8_t) plant[ApiCall->sensor_pin_number];
-            uint8_t valve_pin_number = (uint8_t) plant[ApiCall->valve_pin_number];
-            for(auto p : plants) {
-                if (p->getUid() == uid) {
-                    // p->setHumidityThreshold(humidity_threshold);
-                    p->setWateringTime(watering_time_seconds);
-                    // p->setSensorPin(sensor_pin_number);
-                    // p->setValvePin(valve_pin_number);
-                    std::cout << "DEBUG: Plant " << name << ", UID " << uid << " updated.\r\n";
-                    continue;
-                }
+            float humidity_threshold =
+                (float)plant[ApiCall->humidity_threshold];
+            uint16_t watering_time_seconds =
+                (uint16_t)plant[ApiCall->watering_time_seconds];
+            uint8_t sensor_pin_number =
+                (uint8_t)plant[ApiCall->sensor_pin_number];
+            uint8_t valve_pin_number =
+                (uint8_t)plant[ApiCall->valve_pin_number];
+            for (auto p : plants) {
+              if (p->getUid() == uid) {
+                // In case the plant already exists, update the data
+                p->setName(name);
+                p->setRoom(room);
+                p->setHumidityThreshold(humidity_threshold);
+                p->setWateringTime(watering_time_seconds);
+                p->setSensorPin(sensor_pin_number);
+                p->setValvePin(valve_pin_number);
+                std::cout << "DEBUG: Plant " << name << ", UID " << uid
+                          << " updated.\r\n";
+                continue;
+              }
             }
-            DHT22* sensor = new DHT22(sensor_pin_number);
-            Valve* valve = new Valve(ValveType::solenoid, valve_pin_number);
-            Plant *p = new Plant(name, uid, sensor, valve);
+            DHT22 *sensor = new DHT22(sensor_pin_number);
+            Valve *valve = new Valve(ValveType::solenoid, valve_pin_number);
+            Plant *p = new Plant(
+                name, uid, room, sensor, valve, watering_time_seconds,
+                humidity_threshold); // constructor needs to be modified
             plants.push_back(p);
-            std::cout << "DEBUG: Plant " << plant["name"] << ", UID " << plant["uid"] << " added.\r\n";
+            std::cout << "DEBUG: Plant " << plant["name"] << ", UID "
+                      << plant["uid"] << " added.\r\n";
+          }
+        } catch (json::exception &e) {
+          std::cout << "DEBUG: Error parsing plant info: " << e.what() << "\r\n";
+          return false;
         }
+
         std::cout << "DEBUG: Plant info retrieved successfully!" << std::endl;
         return true;
     } else {
@@ -259,7 +277,6 @@ bool WebClient::postValues()
 void WebClient::postPlantInfo(const httplib::Request &req, httplib::Response &res, POST_PLANT_INFO *post_plant_info)
 {
     json data = json::parse(req.body);
-    // auto post_plant_info = new POST_PLANT_INFO();
     std::string uid = data[post_plant_info->uid];
     for (auto p : plants) {
         if (p->getUid() == uid) {

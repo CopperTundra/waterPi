@@ -115,7 +115,7 @@ void Config::checkAndWater()
     {
         if (plant->getHumidity(&hum)) 
         {
-            if (hum < plant->getMinHumidity()) 
+            if (hum < plant->getHumidityThreshold()) 
             {
                 plant->waterPlant();
             }

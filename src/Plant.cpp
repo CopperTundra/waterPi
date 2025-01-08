@@ -32,17 +32,18 @@ Plant::Plant(std::string name, std::string uid, DHT22* sensor, Valve* valve)
 
 }
 
-Plant::Plant(std::string name, DHT22* sensor, Valve* valve, uint16_t wateringTime, float minHumidity)
-: _name(name), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime), _minHumidity(minHumidity)
+Plant::Plant(std::string name, DHT22 *sensor, Valve *valve,
+             uint16_t wateringTime, float humidityThreshold)
+    : _name(name), _humSensor(sensor), _valve(valve),
+      _wateringTime(wateringTime), _humidityThreshold(humidityThreshold) 
 {
-    _generateUid();
+  _generateUid();
 }
 
-Plant::Plant(std::string name, std::string uid, DHT22* sensor, Valve* valve, uint16_t wateringTime, float minHumidity)
-: _name(name), _uid(uid), _humSensor(sensor), _valve(valve), _wateringTime(wateringTime), _minHumidity(minHumidity)
-{
-
-}
+Plant::Plant(std::string name, std::string uid, std::string room, DHT22 *sensor, Valve *valve,
+             uint16_t wateringTime, float humidityThreshold)
+    : _name(name), _uid(uid), _humSensor(sensor), _valve(valve),
+      _wateringTime(wateringTime), _humidityThreshold(humidityThreshold) {}
 
 bool Plant::getHumidity(float* humidity)
 {

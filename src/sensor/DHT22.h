@@ -32,11 +32,12 @@ class DHT22
 public:
     DHT22(uint8_t pin);
     bool GetHumidity(float* humidity);
+    void setPin(uint8_t pin) { pinNumber = pin; }
 
 private:
     int32_t _temp, _rh;
     struct timeval _then;
-    const int pinNumber;
+    int pinNumber;
     bool readDHTvalue(const int pin);
 };
 
