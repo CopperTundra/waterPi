@@ -73,3 +73,4 @@ target_link_libraries(waterPi_tests PRIVATE GTest::gtest GTest::gtest_main GTest
 
 include(GoogleTest)
 gtest_discover_tests(waterPi_tests)
+target_compile_definitions(waterPi_tests PRIVATE CMAKE_EXPORT_COMPILE_COMMANDS=1)

@@ -22,37 +22,49 @@ project(WaterPi)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include(FetchContent)
+if(NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(tests)
+else()
+    include(FetchContent)
 
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/latest/download/json.tar.xz)
-FetchContent_MakeAvailable(json)
+    FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/latest/download/json.tar.xz)
+    FetchContent_MakeAvailable(json)
 
-find_package(Boost REQUIRED COMPONENTS program_options)
+    find_package(Boost REQUIRED COMPONENTS program_options)
 
-set(SOURCES
-    src/sensor/DHT22.cpp
-    src/Config.cpp
-    src/Plant.cpp
-    src/Valve.cpp
-    src/Watcher.cpp
-    src/WebClient.cpp
-    src/GlobalVars.cpp
-    src/main.cpp
-)
+    set(SOURCES
+        src/sensor/DHT22.cpp
+        src/Config.cpp
+        src/Plant.cpp
+        src/Valve.cpp
+        src/Watcher.cpp
+        src/WebClient.cpp
+        src/GlobalVars.cpp
+        src/main.cpp
+    )
 
-add_executable(waterPi 
-    ${SOURCES}
-)
+    add_executable(waterPi
+        ${SOURCES}
+    )
 
-find_library(WIRINGPI_LIBRARIES wiringPi)
-find_library(WIRINGPIDEV_LIB wiringPiDev)
-target_link_libraries(waterPi PRIVATE ${WIRINGPI_LIBRARIES})
-target_link_libraries(waterPi PRIVATE ${WIRINGPIDEV_LIB})
-target_link_libraries(waterPi PRIVATE Boost::program_options)
-target_link_libraries(waterPi PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(waterPi PRIVATE curl)
-target_link_libraries(waterPi PRIVATE uuid)
-add_subdirectory(cpp-httplib)
-target_link_libraries(waterPi PRIVATE httplib)
-target_include_directories(waterPi PRIVATE "/usr/local/include")
-target_link_directories(waterPi PRIVATE "/usr/local/lib")
+    find_library(WIRINGPI_LIBRARIES wiringPi)
+    find_library(WIRINGPIDEV_LIB wiringPiDev)
+    target_link_libraries(waterPi PRIVATE ${WIRINGPI_LIBRARIES})
+    target_link_libraries(waterPi PRIVATE ${WIRINGPIDEV_LIB})
+    target_link_libraries(waterPi PRIVATE Boost::program_options)
+    target_link_libraries(waterPi PRIVATE nlohmann_json::nlohmann_json)
+    target_link_libraries(waterPi PRIVATE curl)
+    target_link_libraries(waterPi PRIVATE uuid)
+    FetchContent_Declare(
+        httplib
+        GIT_REPOSITORY https://github.com/yhirose/cpp-httplib.git
+        GIT_TAG v0.18.3
+    )
+    FetchContent_MakeAvailable(httplib)
+    target_link_libraries(waterPi PRIVATE httplib)
+    target_include_directories(waterPi PRIVATE "/usr/local/include")
+    target_link_directories(waterPi PRIVATE "/usr/local/lib")
+endif()
+
+
+
