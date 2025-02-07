@@ -64,7 +64,8 @@ else()
     target_link_libraries(waterPi PRIVATE httplib)
     target_include_directories(waterPi PRIVATE "/usr/local/include")
     target_link_directories(waterPi PRIVATE "/usr/local/lib")
+
 endif()
 
-
+add_subdirectory(mock-server)
 
