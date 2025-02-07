@@ -160,7 +160,6 @@ bool WebClient::getPlantInfo()
     auto ApiCall = new GET_PLANT_INFO();
     auto res = _client->Get(ApiCall->endpoint.c_str(), headers);
     if (res && res->status == 200) {
-        // TODO: improve the Plant, Valve and Sensor classes to handle the new data
         std::cout << "DEBUG: GET response: " << res->body << "\r\n";
         json j = json::parse(res->body);
         std::unique_lock<std::mutex> lock(mutex_plants);
