@@ -41,7 +41,8 @@ find_package(GTest REQUIRED)
 # Add test executable
 set(TEST_SOURCES
     WebClientTest.cpp
-    MockHttpClient.h
+    MockWebClient.cpp
+    MockWebClient.h
     ../src/WebClient.cpp
     ../src/Config.cpp
     ../src/Plant.cpp

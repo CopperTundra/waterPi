@@ -1,5 +1,4 @@
-#include "../src/WebClient.h"
-#include "MockHttpClient.h"
+#include "MockWebClient.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <httplib.h>
@@ -7,13 +6,8 @@
 
 using json = nlohmann::json;
 
-
-TEST(ExampleTest, DemonstrateGtestMacros) {
-  EXPECT_TRUE(false);
-}
-
 TEST(WebClientTest, GetPlantInfoSuccess) {
-  WebClient *webClient = new WebClient("config.json", "http://localhost", 1323, 1620);
+  MockWebClient *webClient = new MockWebClient("config.json", "http://localhost", 1323, 1620);
 
   // Execute test
   bool result = webClient->getPlantInfo();
